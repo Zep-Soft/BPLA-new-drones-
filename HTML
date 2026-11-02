@@ -2,1740 +2,1256 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#06080e">
-<title>Сапёр Pro</title>
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Zuno</title>
 <style>
-  :root {
-    --bg-0: #06080e;
-    --border: rgba(255,255,255,0.08);
-    --border-hi: rgba(255,255,255,0.16);
-    --cell: #1e293b;
-    --cell-hi: #273449;
-    --cell-open: #0f1725;
-    --accent: #22d3ee;
-    --accent-2: #a855f7;
-    --accent-3: #f472b6;
-    --danger: #f43f5e;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --text: #f1f5f9;
-    --text-dim: #64748b;
-    --text-mid: #94a3b8;
+  :root{
+    --bg:#0b0c10; --bg-2:#0e0f13;
+    --surface:#15171d; --surface-2:#1b1e26; --surface-3:#232733;
+    --line:rgba(255,255,255,.07); --line-2:rgba(255,255,255,.12);
+    --text:#eef0f4; --dim:#8b90a0; --dim-2:#5c6172;
+    --accent:#5b8cff; --accent-2:#7aa2ff; --accent-ink:#fff;
+    --ok:#3ddc84; --danger:#ff5c5c;
+    --radius-xl:26px; --radius-lg:20px; --radius-md:14px; --radius-sm:10px;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --shadow-1:0 1px 2px rgba(0,0,0,.4);
+    --shadow-2:0 8px 24px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.3);
+    --shadow-3:0 24px 60px rgba(0,0,0,.5), 0 8px 20px rgba(0,0,0,.35);
+    --glow:0 0 0 4px rgba(91,140,255,.18);
+    --font-scale:1; --btn-h:48px;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body {
-    width: 100%; height: 100%; overflow: hidden;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-    background: var(--bg-0); color: var(--text);
-    user-select: none; -webkit-user-select: none;
-    touch-action: manipulation;
+  html[data-theme="light"]{
+    --bg:#f5f6f8; --bg-2:#fff;
+    --surface:#fff; --surface-2:#f0f2f5; --surface-3:#e6e9ef;
+    --line:rgba(0,0,0,.07); --line-2:rgba(0,0,0,.12);
+    --text:#111318; --dim:#5b6172; --dim-2:#8b90a0;
+    --shadow-3:0 24px 60px rgba(0,0,0,.15), 0 8px 20px rgba(0,0,0,.08);
   }
-  body::before {
-    content: ''; position: fixed; inset: -20%;
-    background:
-      radial-gradient(circle at 15% 10%, rgba(34,211,238,0.18) 0%, transparent 40%),
-      radial-gradient(circle at 85% 20%, rgba(168,85,247,0.16) 0%, transparent 45%),
-      radial-gradient(circle at 50% 90%, rgba(244,114,182,0.10) 0%, transparent 50%);
-    animation: bgFloat 20s ease-in-out infinite alternate;
-    pointer-events: none; z-index: 0;
-  }
-  @keyframes bgFloat {
-    0%   { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(-3%, 2%) scale(1.05); }
-  }
+  html[data-accent="violet"]{--accent:#a06bff;--accent-2:#b98aff;--glow:0 0 0 4px rgba(160,107,255,.2)}
+  html[data-accent="lime"]{--accent:#8bd000;--accent-2:#a5e02a;--accent-ink:#0b0c10;--glow:0 0 0 4px rgba(139,208,0,.2)}
+  html[data-accent="pink"]{--accent:#ff5c9d;--accent-2:#ff85b6;--glow:0 0 0 4px rgba(255,92,157,.2)}
+  html[data-accent="orange"]{--accent:#ff8a3d;--accent-2:#ffa76b;--accent-ink:#1a0e00;--glow:0 0 0 4px rgba(255,138,61,.2)}
+  html[data-accent="cyan"]{--accent:#22c8d8;--accent-2:#4fdbeb;--accent-ink:#001417;--glow:0 0 0 4px rgba(34,200,216,.2)}
 
-  .screen {
-    position: fixed; inset: 0;
-    display: none; flex-direction: column;
-    z-index: 1;
-    padding: calc(12px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
-    animation: screenIn 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
-  }
-  .screen.active { display: flex; }
-  @keyframes screenIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%; width:100%; overflow:hidden;}
+  body{font-family:var(--sans); color:var(--text); background:var(--bg); display:flex; justify-content:center; align-items:center; font-size:calc(15px * var(--font-scale)); -webkit-font-smoothing:antialiased; transition:background .25s, color .25s;}
 
-  /* ---------- МЕНЮ ---------- */
-  #menu { justify-content: center; align-items: center; gap: 12px; text-align: center; }
-  .logo {
-    font-size: clamp(38px, 12vw, 64px); font-weight: 900;
-    letter-spacing: -2px; margin-bottom: 4px;
-    background: linear-gradient(135deg, #22d3ee, #a855f7, #f472b6);
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 30px rgba(34,211,238,0.4));
-    animation: logoGlow 3s ease-in-out infinite;
-  }
-  @keyframes logoGlow {
-    0%,100% { filter: drop-shadow(0 0 30px rgba(34,211,238,0.4)); }
-    50%     { filter: drop-shadow(0 0 40px rgba(168,85,247,0.6)); }
-  }
-  .logo-sub {
-    font-size: clamp(12px, 3.5vw, 15px); color: var(--text-dim);
-    font-weight: 700; letter-spacing: 4px; text-transform: uppercase;
-    margin-bottom: 20px;
-  }
-  .menu-league-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 8px 16px;
-    background: rgba(0,0,0,0.4);
-    border: 1px solid var(--border);
-    border-radius: 20px; margin-bottom: 18px;
-    font-size: 13px; font-weight: 700;
-  }
+  .app{width:100%; height:100%; max-width:100%; background:linear-gradient(180deg, var(--bg-2), var(--bg)); display:flex; flex-direction:column; overflow:hidden; position:relative; transition:background .25s;}
+  #s-phone, #s-code { justify-content:center; padding:20px; }
+  .form { padding:0; max-width:400px; width:100%; margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+  .app:has(#s-phone.active) .topbar, .app:has(#s-code.active) .topbar { display:none; }
 
-  .menu-btn {
-    width: 100%; max-width: 300px;
-    padding: 16px 20px;
-    font-size: 16px; font-weight: 900;
-    color: var(--text);
-    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-    border: 1px solid var(--border-hi);
-    border-radius: 16px;
-    cursor: pointer;
-    display: flex; align-items: center; gap: 12px;
-    transition: all 0.2s;
-    text-transform: uppercase; letter-spacing: 0.5px;
-    position: relative;
-  }
-  .menu-btn:active { transform: scale(0.97); background: rgba(255,255,255,0.1); }
-  .menu-btn.primary {
-    background: linear-gradient(135deg, #22d3ee, #a855f7);
-    border-color: transparent;
-    color: #06080e;
-    box-shadow: 0 8px 24px rgba(34,211,238,0.4);
-  }
-  .menu-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
-  .menu-btn.primary svg { filter: brightness(0); }
-  .menu-btn.locked {
-    opacity: 0.45;
-    filter: grayscale(1);
-    cursor: not-allowed;
-    pointer-events: auto;
-  }
-  .menu-btn.locked::after {
-    content: '🔒';
-    position: absolute; right: 16px;
-    font-size: 18px;
-  }
-  .menu-btn.locked:active { transform: none; }
+  .push-sms { position:absolute; top:-100px; left:16px; right:16px; z-index:999; background:rgba(30,32,40,0.98); backdrop-filter:blur(20px) saturate(180%); border:1px solid var(--line-2); border-radius:18px; padding:14px 16px; display:flex; align-items:flex-start; gap:12px; box-shadow:0 10px 40px rgba(0,0,0,.8); transition:top .4s cubic-bezier(.2,.8,.2,1); }
+  .push-sms.show { top:16px; }
+  .push-ico { width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg, var(--accent), #a06bff); display:grid; place-items:center; color:#fff; font-weight:800; font-size:16px; flex-shrink:0;}
+  .push-body { flex:1; }
+  .push-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:2px; display:flex; justify-content:space-between; }
+  .push-title span { font-weight:400; font-size:11px; color:var(--dim); }
+  .push-text { font-size:14px; color:var(--dim); line-height:1.3; }
+  .push-phone { font-family:var(--mono); font-weight:600; color:var(--accent); font-size:13px; margin-bottom:4px;}
+  .push-code { font-family:var(--mono); font-weight:700; color:var(--text); font-size:16px; letter-spacing:2px; }
 
-  /* ---------- TOP BAR ---------- */
-  .topbar {
-    flex: 0 0 auto;
-    display: flex; align-items: center; gap: 12px;
-    margin-bottom: 12px;
-  }
-  .back-btn {
-    width: 44px; height: 44px;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    cursor: pointer; color: var(--text);
-    flex-shrink: 0;
-  }
-  .back-btn:active { transform: scale(0.94); }
-  .back-btn svg { width: 20px; height: 20px; }
-  .topbar-title { font-size: 18px; font-weight: 900; flex: 1; }
+  .topbar{ display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid var(--line); background:color-mix(in srgb, var(--surface) 60%, transparent); backdrop-filter:blur(20px) saturate(180%); flex-shrink:0; position:relative; z-index:2; }
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(61,220,132,.15)} .dot.off{background:var(--dim-2);box-shadow:0 0 0 3px rgba(92,97,114,.15)}
+  .brand{font-weight:700;font-size:14px;letter-spacing:.02em} .brand span{color:var(--dim);font-weight:500}
+  .spacer{margin-left:auto}
+  #status-label{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--dim);font-family:var(--mono)}
+  .icon-btn{ width:36px;height:36px;border-radius:50%; display:grid;place-items:center; background:transparent;border:1px solid var(--line-2); color:var(--dim);cursor:pointer;transition:.15s; flex-shrink:0; }
+  .icon-btn:hover{color:var(--text);border-color:var(--line-2);background:var(--surface-2)} .icon-btn svg{width:16px;height:16px}
 
-  /* ---------- GAME ---------- */
-  header {
-    flex: 0 0 auto;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 12px;
-    background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
-    margin-bottom: 8px;
-  }
-  .stat-pill {
-    display: flex; align-items: center; gap: 8px;
-    padding: 6px 12px 6px 8px;
-    background: rgba(0,0,0,0.35);
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.06);
-    min-width: 88px;
-  }
-  .stat-pill.right { flex-direction: row-reverse; padding: 6px 8px 6px 12px; }
-  .stat-icon { width: 24px; height: 24px; flex-shrink: 0; }
-  .stat-icon img { width: 100%; height: 100%; display: block; }
-  .stat-value {
-    font-size: clamp(16px, 4.6vw, 22px); font-weight: 800;
-    font-variant-numeric: tabular-nums; letter-spacing: -0.5px;
-    background: linear-gradient(180deg, #fff, #94a3b8);
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-  }
-  .stat-pill.warn .stat-value {
-    background: linear-gradient(180deg, #fbbf24, #f59e0b);
-    -webkit-background-clip: text; background-clip: text;
-    animation: warnPulse 1s infinite;
-  }
-  @keyframes warnPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .screen{display:none;flex:1;flex-direction:column;min-height:0;position:relative}
+  .screen.active{display:flex;animation:screenIn .28s cubic-bezier(.2,.7,.2,1)}
+  @keyframes screenIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-  #reset {
-    position: relative;
-    width: clamp(52px, 13vw, 68px);
-    height: clamp(52px, 13vw, 68px);
-    border: none; border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    padding: 8px;
-    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 0 0 0 2px rgba(255,255,255,0.1), 0 8px 24px rgba(34,211,238,0.4);
-  }
-  #reset:active { transform: scale(0.9); }
-  #reset img { width: 100%; height: 100%; filter: brightness(0) invert(1); }
-  #reset.pulse { animation: resetPulse 0.6s ease-out; }
-  @keyframes resetPulse {
-    0%   { box-shadow: 0 0 0 2px rgba(255,255,255,0.1), 0 0 0 0 rgba(34,211,238,0.6); }
-    100% { box-shadow: 0 0 0 2px rgba(255,255,255,0.1), 0 0 0 20px rgba(34,211,238,0); }
-  }
+  .kicker{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-family:var(--mono);display:flex;align-items:center;gap:8px}
+  .kicker::before{content:"";width:16px;height:1px;background:var(--accent);opacity:.6}
+  h1{font-size:30px;line-height:1.12;letter-spacing:-.025em;font-weight:700;margin-top:8px}
+  h1 .thin{color:var(--dim);font-weight:400}
+  .hint{font-size:13.5px;color:var(--dim);line-height:1.55;max-width:36ch}
+  .hint b{color:var(--text);font-weight:600}
 
-  #toolbar {
-    flex: 0 0 auto;
-    display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
-    padding: 4px;
-    background: rgba(0,0,0,0.4);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    margin-bottom: 8px;
-  }
-  .tool-btn {
-    padding: 10px 4px;
-    font-size: clamp(10px, 2.9vw, 12px); font-weight: 800;
-    color: var(--text-mid); background: transparent;
-    border: none; border-radius: 10px;
-    cursor: pointer; transition: all 0.2s;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-  }
-  .tool-btn svg { width: 18px; height: 18px; }
-  .tool-btn.active {
-    color: #fff;
-    background: linear-gradient(135deg, rgba(34,211,238,0.9), rgba(168,85,247,0.9));
-    box-shadow: 0 4px 16px rgba(34,211,238,0.3);
-  }
-  .tool-btn.flag-mode.active {
-    background: linear-gradient(135deg, #fbbf24, #f59e0b);
-    box-shadow: 0 4px 16px rgba(245,158,11,0.4);
-    color: #1a1a1a;
-  }
+  .field{display:flex;flex-direction:column;gap:8px}
+  .label{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--dim)}
 
-  #board-wrap {
-    flex: 1 1 auto;
-    display: flex; align-items: center; justify-content: center;
-    min-height: 0;
+  input[type=tel],input[type=text],input[type=email]{
+    width:100%; background:var(--surface); border:1px solid var(--line-2);
+    border-radius:var(--radius-md); color:var(--text);
+    font-size:16.5px; font-family:var(--sans); padding:14px 16px; outline:none;
+    transition:border-color .15s, box-shadow .15s, background .15s;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.02);
   }
-  #board {
-    display: grid; gap: 3px;
-    background: rgba(0,0,0,0.5);
-    padding: 6px;
-    border-radius: 14px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
-    animation: boardIn 0.5s cubic-bezier(0.34, 1.2, 0.64, 1);
-  }
-  @keyframes boardIn {
-    from { opacity: 0; transform: scale(0.92); }
-    to   { opacity: 1; transform: scale(1); }
-  }
-  .cell {
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 800;
-    background: linear-gradient(145deg, var(--cell), #172033);
-    border-radius: 6px; cursor: pointer;
-    color: #fff; line-height: 1; overflow: hidden;
-    position: relative;
-    transition: all 0.1s;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 1px 2px rgba(0,0,0,0.3);
-  }
-  .cell:active:not(.open) { background: var(--cell-hi); transform: scale(0.92); }
-  .cell.open {
-    background: var(--cell-open); cursor: default;
-    animation: pop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
-  }
-  @keyframes pop { 0% { transform: scale(0.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-  .cell.flag {
-    background: linear-gradient(145deg, #fbbf24, #f59e0b);
-    box-shadow: 0 0 12px rgba(245,158,11,0.5);
-    animation: flagPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  @keyframes flagPop { 0% { transform: scale(0.7) rotate(-15deg); } 100% { transform: scale(1); } }
-  .cell.mine { background: linear-gradient(145deg, #ef4444, #991b1b); }
-  .cell.boom {
-    background: #fff !important;
-    animation: boom 0.8s ease-out; z-index: 5;
-  }
-  @keyframes boom {
-    0%   { box-shadow: 0 0 0 0 #ef4444, inset 0 0 0 0 #fff; transform: scale(1); }
-    30%  { box-shadow: 0 0 0 15px rgba(239,68,68,0.6), inset 0 0 20px #fff; transform: scale(1.15); }
-    100% { box-shadow: 0 0 0 60px rgba(239,68,68,0), inset 0 0 0 transparent; transform: scale(1); }
-  }
-  .cell img { width: 72%; height: 72%; display: block; pointer-events: none; }
-  .cell[data-n="1"] { color: #38bdf8; text-shadow: 0 0 8px rgba(56,189,248,0.5); }
-  .cell[data-n="2"] { color: #34d399; text-shadow: 0 0 8px rgba(52,211,153,0.5); }
-  .cell[data-n="3"] { color: #f87171; text-shadow: 0 0 8px rgba(248,113,113,0.5); }
-  .cell[data-n="4"] { color: #c084fc; text-shadow: 0 0 8px rgba(192,132,252,0.5); }
-  .cell[data-n="5"] { color: #fb923c; text-shadow: 0 0 8px rgba(251,146,60,0.5); }
-  .cell[data-n="6"] { color: #22d3ee; text-shadow: 0 0 8px rgba(34,211,238,0.5); }
-  .cell[data-n="7"] { color: #f472b6; text-shadow: 0 0 8px rgba(244,114,182,0.5); }
-  .cell[data-n="8"] { color: #94a3b8; }
-  .ripple {
-    position: absolute; border-radius: 50%;
-    background: rgba(255,255,255,0.5);
-    transform: scale(0);
-    animation: rippleAnim 0.5s ease-out;
-    pointer-events: none;
-  }
-  @keyframes rippleAnim { to { transform: scale(3); opacity: 0; } }
+  input::placeholder{color:var(--dim-2)} input:hover{border-color:rgba(128,128,128,.3)}
+  input:focus{border-color:var(--accent);background:var(--surface-2);box-shadow:var(--glow)}
+  input.error{border-color:var(--danger);box-shadow:0 0 0 4px rgba(255,92,92,.15)}
 
-  /* ---------- OVERLAY ---------- */
-  .overlay {
-    position: fixed; inset: 0;
-    background: rgba(6,8,14,0.9);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    display: none; align-items: center; justify-content: center;
-    z-index: 10; padding: 20px;
-    animation: fadeIn 0.3s ease-out;
-  }
-  .overlay.show { display: flex; }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  .dialog {
-    background: linear-gradient(160deg, rgba(30,41,64,0.95), rgba(8,11,18,0.95));
-    border: 1px solid var(--border-hi);
-    border-radius: 24px;
-    padding: 28px 22px 22px;
-    width: 100%; max-width: 340px;
-    text-align: center;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.8);
-    animation: resultIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  @keyframes resultIn {
-    from { transform: scale(0.7) translateY(20px); opacity: 0; }
-    to   { transform: scale(1) translateY(0); opacity: 1; }
-  }
-  .dialog h2 { font-size: 24px; font-weight: 900; margin-bottom: 8px; }
-  .dialog h2.win {
-    background: linear-gradient(135deg, #34d399, #22d3ee);
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-  }
-  .dialog h2.lose {
-    background: linear-gradient(135deg, #f87171, #f43f5e);
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-  }
-  .dialog p { color: var(--text-dim); font-size: 13px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
-  .dialog .big-time {
-    font-size: 40px; font-weight: 900; margin: 6px 0 14px;
-    font-variant-numeric: tabular-nums;
-    background: linear-gradient(180deg, #22d3ee, #a855f7);
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    letter-spacing: -2px;
-  }
-  .dialog .best {
-    display: inline-flex; align-items: center; gap: 6px;
-    font-size: 13px; font-weight: 700; color: #fbbf24;
-    background: rgba(251,191,36,0.1);
-    border: 1px solid rgba(251,191,36,0.3);
-    padding: 6px 14px; border-radius: 20px;
-    margin-bottom: 20px;
-  }
-  .dialog button {
-    width: 100%; padding: 15px;
-    font-size: 16px; font-weight: 900;
-    color: #06080e;
-    background: linear-gradient(135deg, #22d3ee, #a855f7);
-    border: none; border-radius: 16px;
-    cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px;
-    box-shadow: 0 8px 24px rgba(34,211,238,0.4);
-    transition: transform 0.1s;
-  }
-  .dialog button:active { transform: scale(0.96); }
-  .dialog button.secondary {
-    background: rgba(255,255,255,0.08); color: var(--text);
-    box-shadow: none; margin-top: 8px;
-  }
-  .dialog input {
-    width: 100%; padding: 14px;
-    font-size: 22px; font-weight: 900; text-align: center;
-    color: var(--text);
-    background: rgba(0,0,0,0.4);
-    border: 1px solid var(--border-hi);
-    border-radius: 12px;
-    margin-bottom: 12px;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    outline: none;
-  }
-  .dialog input::placeholder { color: var(--text-dim); letter-spacing: 2px; }
+  .otp{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .otp input{text-align:center;font-size:22px;font-weight:700;padding:16px 0;font-family:var(--mono);caret-color:var(--accent);border-radius:var(--radius-md)}
+  .otp input.filled{border-color:var(--line-2);background:var(--surface-2)}
 
-  #toast {
-    position: fixed;
-    bottom: calc(24px + env(safe-area-inset-bottom)); left: 50%;
-    transform: translateX(-50%) translateY(120px);
-    background: linear-gradient(135deg, rgba(30,41,64,0.98), rgba(8,11,18,0.98));
-    border: 1px solid var(--border-hi);
-    padding: 12px 20px; border-radius: 14px;
-    font-size: 13px; font-weight: 700;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    z-index: 20; pointer-events: none;
-    white-space: nowrap;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  .btn{
+    width:100%; min-height:var(--btn-h); border:none; border-radius:var(--radius-md);
+    background:linear-gradient(180deg, var(--accent-2), var(--accent)); color:var(--accent-ink);
+    font-size:15px; font-weight:600; letter-spacing:.01em; padding:0 16px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:filter .12s, opacity .12s, box-shadow .12s;
+    box-shadow:0 6px 18px color-mix(in srgb, var(--accent) 35%, transparent), inset 0 1px 0 rgba(255,255,255,.2);
+    line-height:1;
   }
-  #toast.show { transform: translateX(-50%) translateY(0); }
+  .btn:hover{filter:brightness(1.06)} .btn:active{filter:brightness(.96)}
+  .btn:disabled{opacity:.45;cursor:not-allowed;filter:none;box-shadow:none}
+  .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line-2);box-shadow:none}
+  .btn.ghost:hover{background:var(--surface);border-color:rgba(128,128,128,.3);filter:none}
+  .btn.danger{background:linear-gradient(180deg,#ff7a7a,var(--danger));box-shadow:0 6px 18px rgba(255,92,92,.35), inset 0 1px 0 rgba(255,255,255,.2)}
 
-  /* ---------- ЛИГИ ---------- */
-  .league-card {
-    background: linear-gradient(160deg, rgba(30,41,64,0.8), rgba(8,11,18,0.8));
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 20px; margin-bottom: 14px;
-    text-align: left;
-  }
-  .league-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
-  .league-big-icon {
-    width: 56px; height: 56px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 28px; flex-shrink: 0;
-    box-shadow: 0 0 20px currentColor;
-  }
-  .league-info { flex: 1; text-align: left; }
-  .league-name { font-size: 18px; font-weight: 900; margin-bottom: 2px; }
-  .league-points { font-size: 13px; color: var(--text-dim); font-weight: 700; }
-  .progress-bar {
-    height: 8px; background: rgba(0,0,0,0.4);
-    border-radius: 4px; overflow: hidden; margin-bottom: 6px;
-  }
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #22d3ee, #a855f7);
-    border-radius: 4px;
-    transition: width 0.5s;
-    box-shadow: 0 0 10px rgba(34,211,238,0.6);
-  }
-  .progress-text {
-    display: flex; justify-content: space-between;
-    font-size: 11px; color: var(--text-dim); font-weight: 700;
-  }
-  .league-list {
-    display: flex; flex-direction: column; gap: 6px;
-    overflow-y: auto; flex: 1;
-    padding-right: 4px;
-  }
-  .league-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 14px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    font-size: 14px; font-weight: 700;
-  }
-  .league-item.current {
-    background: rgba(34,211,238,0.1);
-    border-color: rgba(34,211,238,0.4);
-    box-shadow: 0 0 16px rgba(34,211,238,0.2);
-  }
-  .league-item.locked { opacity: 0.4; }
-  .league-item-icon {
-    width: 32px; height: 32px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; flex-shrink: 0;
-  }
-  .league-item-name { flex: 1; }
-  .league-item-pts { font-size: 12px; color: var(--text-dim); }
+  .feedback{font-size:12.5px;font-weight:500;min-height:18px;line-height:1.4}
+  .feedback.err{color:var(--danger)} .feedback.ok{color:var(--ok)}
+  .foot{margin-top:auto;font-size:11px;color:var(--dim-2);letter-spacing:.04em;padding-top:12px;display:flex;align-items:center;justify-content:center;gap:6px}
+  .foot .sep{width:3px;height:3px;border-radius:50%;background:var(--dim-2)}
 
-  /* ---------- СТАТИСТИКА ---------- */
-  .stats-list { flex: 1; overflow-y: auto; padding-right: 4px; text-align: left; }
-  .stat-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    font-size: 14px;
-  }
-  .stat-row:last-child { border-bottom: none; }
-  .stat-row .label { color: var(--text-mid); font-weight: 600; }
-  .stat-row .value {
-    font-weight: 900; font-variant-numeric: tabular-nums;
-    background: linear-gradient(135deg, #22d3ee, #a855f7);
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-  }
+  .list-head{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb, var(--surface) 60%, transparent);backdrop-filter:blur(20px) saturate(180%);flex-shrink:0;position:relative;z-index:2}
+  .list-head .title{font-weight:700;font-size:18px;letter-spacing:-.02em}
+  .search{padding:10px 14px 6px;flex-shrink:0;} .search .wrap-search{position:relative;}
+  .search input{padding:10px 14px 10px 38px;font-size:14px;border-radius:12px;background:var(--surface);}
+  .search .search-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--dim-2);pointer-events:none;}
 
-  /* ---------- МУЛЬТИПЛЕЕР ---------- */
-  .mp-btn {
-    width: 100%; padding: 18px 16px;
-    background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-    border: 1px solid var(--border-hi);
-    border-radius: 16px; color: var(--text);
-    cursor: pointer; text-align: left;
-    margin-bottom: 10px; transition: all 0.2s;
-    display: flex; align-items: center; gap: 14px;
-  }
-  .mp-btn:active { transform: scale(0.97); }
-  .mp-btn svg { width: 32px; height: 32px; color: var(--accent); flex-shrink: 0; }
-  .mp-btn-text { flex: 1; }
-  .mp-btn-title { font-size: 16px; font-weight: 900; margin-bottom: 3px; }
-  .mp-btn-desc { font-size: 12px; color: var(--text-dim); font-weight: 600; }
+  .chats{flex:1;overflow-y:auto;padding:6px 8px 16px;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+  .chats::-webkit-scrollbar{width:6px} .chats::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:999px}
 
-  .mp-status {
-    padding: 20px;
-    background: rgba(0,0,0,0.4);
-    border-radius: 16px;
-    text-align: center;
-    margin-bottom: 12px;
-  }
-  .mp-status .status-text {
-    font-size: 14px; color: var(--text-mid);
-    font-weight: 700; margin-bottom: 12px;
-  }
-  .mp-code {
-    font-size: 42px; font-weight: 900;
-    font-family: 'Courier New', monospace;
-    background: linear-gradient(135deg, #22d3ee, #a855f7);
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    letter-spacing: 8px;
-    margin: 10px 0;
-    user-select: all;
-  }
-  .mp-code-hint {
-    font-size: 12px; color: var(--text-dim);
-    font-weight: 600; margin-bottom: 12px;
-  }
-  .spinner {
-    width: 32px; height: 32px;
-    border: 3px solid rgba(34,211,238,0.2);
-    border-top-color: #22d3ee;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 12px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .chat-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;cursor:pointer;transition:background .12s;animation:screenIn .2s}
+  .chat-item:hover{background:var(--surface-2)}
+  .chat-item .ava-wrap{width:48px;height:48px;margin:0 4px 4px 0} .chat-item .ava-wrap .ava{font-size:18px}
+  .chat-item .ava-wrap .presence{width:11px;height:11px;right:-4px;bottom:-4px;border-width:2px}
+  .chat-item .body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .chat-item .row1{display:flex;align-items:center;gap:8px}
+  .chat-item .name{font-weight:600;font-size:15px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+  .chat-item .time{font-size:11px;color:var(--dim-2);font-family:var(--mono);flex-shrink:0}
+  .chat-item .row2{display:flex;align-items:center;gap:8px}
+  .chat-item .preview{font-size:13px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+  .badge{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:11px;font-weight:700;display:grid;place-items:center;flex-shrink:0;font-family:var(--mono)}
+  .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:48px 24px;text-align:center;color:var(--dim)}
+  .empty .big{font-size:40px;opacity:.4} .empty p{font-size:13.5px;line-height:1.5;max-width:26ch}
 
-  .player-bar {
-    display: flex; gap: 6px;
-    margin-bottom: 8px; flex: 0 0 auto;
-  }
-  .player-card {
-    flex: 1; padding: 10px 12px;
-    background: rgba(255,255,255,0.04);
-    border: 2px solid transparent;
-    border-radius: 12px;
-    transition: all 0.3s; text-align: left;
-  }
-  .player-card.active {
-    border-color: var(--accent);
-    background: rgba(34,211,238,0.1);
-    box-shadow: 0 0 20px rgba(34,211,238,0.3);
-  }
-  .player-card.winner {
-    border-color: var(--success);
-    background: rgba(16,185,129,0.15);
-    box-shadow: 0 0 20px rgba(16,185,129,0.4);
-  }
-  .player-card.loser { opacity: 0.5; }
-  .player-name { font-size: 11px; color: var(--text-dim); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-  .player-score { font-size: 18px; font-weight: 900; margin-top: 2px; }
-  .player-card.active .player-name { color: var(--accent); }
+  .chathead{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb, var(--surface) 60%, transparent);backdrop-filter:blur(20px) saturate(180%);flex-shrink:0;position:relative;z-index:2}
+  .chathead .back{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:transparent;border:1px solid var(--line-2);color:var(--dim);cursor:pointer;transition:.15s;flex-shrink:0}
+  .chathead .back:hover{color:var(--text);background:var(--surface-2)} .chathead .back svg{width:16px;height:16px}
 
-  .confetti {
-    position: fixed; width: 8px; height: 8px;
-    border-radius: 2px; pointer-events: none; z-index: 100;
-    animation: confettiFall 2s linear forwards;
-  }
-  @keyframes confettiFall {
-    0%   { transform: translateY(0) rotate(0); opacity: 1; }
-    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-  }
+  .ava-wrap{position:relative;width:40px;height:40px;flex-shrink:0;margin:0 5px 5px 0} .ava-wrap .ava{width:100%;height:100%}
+  .ava{width:40px;height:40px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:16px;color:#fff;background:radial-gradient(circle at 30% 25%, rgba(255,255,255,.35), transparent 50%),linear-gradient(135deg, var(--accent), #a06bff);box-shadow:0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent), inset 0 1px 0 rgba(255,255,255,.25);overflow:hidden;}
+  .ava img{width:100%;height:100%;object-fit:cover}
+  .presence{position:absolute;right:-5px;bottom:-5px;width:12px;height:12px;border-radius:50%;background:var(--ok);border:2px solid var(--bg-2);box-sizing:content-box;z-index:3;pointer-events:none;transition:background .2s,border-color .2s;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+  .presence.off{background:var(--dim-2)}
+
+  .who{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+  .who .n{font-weight:600;font-size:14.5px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .who .s{font-size:11.5px;color:var(--ok);font-weight:500}
+  .leave{background:transparent;border:1px solid var(--line-2);color:var(--dim);font-size:12px;font-weight:600;padding:8px 12px;border-radius:var(--radius-sm);cursor:pointer;transition:.15s}
+  .leave:hover{color:var(--danger);border-color:rgba(255,92,92,.4);background:rgba(255,92,92,.08)}
+
+  .thread{flex:1;overflow-y:auto;padding:18px 16px 10px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent;scroll-behavior:smooth}
+  .thread::-webkit-scrollbar{width:6px} .thread::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:999px}
+  .row{display:flex;animation:bubbleIn .22s cubic-bezier(.2,.7,.2,1)} @keyframes bubbleIn{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+  .row.me{justify-content:flex-end}
+  .bubble{max-width:78%;font-size:14.5px;line-height:1.45;padding:10px 14px;border-radius:18px;position:relative;word-wrap:break-word;overflow-wrap:anywhere;box-shadow:var(--shadow-1)}
+  .row.them .bubble{background:var(--surface-2);color:var(--text);border-bottom-left-radius:6px;border:1px solid var(--line)}
+  .row.me .bubble{background:linear-gradient(180deg, var(--accent-2), var(--accent));color:var(--accent-ink);border-bottom-right-radius:6px;box-shadow:0 6px 18px color-mix(in srgb, var(--accent) 30%, transparent), inset 0 1px 0 rgba(255,255,255,.15)}
+  .bubble .t{display:block;font-size:10px;font-weight:500;opacity:.6;margin-top:4px;text-align:right}
+  .sys{align-self:center;font-size:11px;font-weight:500;color:var(--dim);background:var(--surface);border:1px solid var(--line);padding:5px 12px;border-radius:999px;margin:6px 0}
+  .typing{align-self:flex-start;display:flex;gap:4px;align-items:center;padding:12px 16px;background:var(--surface-2);border:1px solid var(--line);border-radius:18px;border-bottom-left-radius:6px;width:fit-content;box-shadow:var(--shadow-1)}
+  .typing i{width:6px;height:6px;border-radius:50%;background:var(--dim);animation:typingDot 1.3s infinite ease-in-out} .typing i:nth-child(2){animation-delay:.15s} .typing i:nth-child(3){animation-delay:.3s}
+  @keyframes typingDot{0%,60%,100%{opacity:.35;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px);background:var(--accent-2)}}
+
+  .composer{display:flex;gap:10px;align-items:flex-end;padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:color-mix(in srgb, var(--surface) 70%, transparent);backdrop-filter:blur(20px) saturate(180%);flex-shrink:0}
+  .attach{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line-2);color:var(--dim);cursor:pointer;transition:.15s;flex-shrink:0;}
+  .attach:hover{color:var(--text);background:var(--surface-2)}
+  .attach svg{width:20px;height:20px}
+  .wrap{flex:1;position:relative}
+  .composer input{margin:0;border-radius:22px;padding:12px 52px 12px 16px;background:var(--surface);font-size:15px}
+  .count{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:10.5px;font-weight:500;color:var(--dim-2);pointer-events:none;font-family:var(--mono);transition:color .15s}
+  .count.warn{color:var(--danger)}
+  .send{width:44px;height:44px;flex-shrink:0;display:grid;place-items:center;border-radius:50%;border:none;background:linear-gradient(180deg, var(--accent-2), var(--accent));color:var(--accent-ink);cursor:pointer;transition:filter .12s,opacity .12s;box-shadow:0 6px 18px color-mix(in srgb, var(--accent) 40%, transparent), inset 0 1px 0 rgba(255,255,255,.25)}
+  .send:hover{filter:brightness(1.08)} .send:active{filter:brightness(.94)} .send:disabled{opacity:.35;cursor:not-allowed;filter:none;box-shadow:none}
+  .send svg{width:18px;height:18px;display:block;transform:translateX(1px)}
+
+  .settings-head{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb, var(--surface) 60%, transparent);backdrop-filter:blur(20px) saturate(180%);flex-shrink:0;position:relative;z-index:2}
+  .settings-head .title{font-weight:700;font-size:18px;letter-spacing:-.01em}
+  .settings-head .back{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:transparent;border:1px solid var(--line-2);color:var(--dim);cursor:pointer;transition:.15s;flex-shrink:0}
+  .settings-head .back:hover{color:var(--text);background:var(--surface-2)} .settings-head .back svg{width:16px;height:16px}
+
+  .settings-body{flex:1;overflow-y:auto;padding:16px 16px 32px;display:flex;flex-direction:column;gap:16px;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+  .settings-body::-webkit-scrollbar{width:6px} .settings-body::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:999px}
+
+  .group{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden; flex-shrink:0;}
+  .group-title{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:0 4px;font-family:var(--mono)}
+
+  .rowitem{display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer;transition:background .12s;border-bottom:1px solid var(--line);min-height:56px;}
+  .rowitem:last-child{border-bottom:none} .rowitem:hover{background:var(--surface-2)}
+  .rowitem .ico{width:34px;height:34px;flex-shrink:0;border-radius:10px;display:grid;place-items:center;background:var(--surface-2);color:var(--accent)}
+  .rowitem .ico svg{width:18px;height:18px}
+  .rowitem .txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .rowitem .txt .t{font-size:15px;font-weight:500;color:var(--text);line-height:1.2;}
+  .rowitem .txt .d{font-size:12.5px;color:var(--dim);line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rowitem .chev{color:var(--dim-2);width:16px;height:16px;flex-shrink:0}
+
+  .switch{position:relative;width:44px;height:26px;flex-shrink:0;background:var(--surface-3);border-radius:999px;cursor:pointer;transition:.2s;border:1px solid var(--line-2)}
+  .switch::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:.2s cubic-bezier(.2,.7,.2,1)}
+  .switch.on{background:var(--accent);border-color:var(--accent)} .switch.on::after{left:20px}
+
+  .profile-hero{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px 16px;text-align:center}
+  .avatar-lg-wrap{position:relative;width:88px;height:88px;margin:0 6px 6px 0} .avatar-lg-wrap .presence{width:16px;height:16px;right:-6px;bottom:-6px;border-width:3px}
+  .avatar-lg{width:88px;height:88px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:32px;color:#fff;background:radial-gradient(circle at 30% 25%, rgba(255,255,255,.35), transparent 50%),linear-gradient(135deg, var(--accent), #a06bff);box-shadow:0 10px 30px color-mix(in srgb, var(--accent) 40%, transparent), inset 0 1px 0 rgba(255,255,255,.25);position:relative;cursor:pointer;overflow:hidden;transition:transform .15s}
+  .avatar-lg:hover{transform:scale(1.03)} .avatar-lg img{width:100%;height:100%;object-fit:cover}
+  .avatar-lg .edit{position:absolute;inset:auto 0 0 0;background:linear-gradient(transparent, rgba(0,0,0,.65));color:#fff;font-size:10px;font-weight:600;padding:20px 0 8px;letter-spacing:.04em;text-transform:uppercase}
+  .profile-name{font-size:20px;font-weight:700;letter-spacing:-.02em} .profile-handle{font-size:13px;color:var(--dim);font-family:var(--mono)}
+
+  .swatches{display:flex;gap:12px;padding:14px 16px;flex-wrap:wrap}
+  .swatch{width:36px;height:36px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .12s,border-color .12s;position:relative}
+  .swatch:hover{transform:scale(1.08)} .swatch.active{border-color:var(--text);box-shadow:0 0 0 3px var(--surface)}
+  .swatch.active::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-weight:800;font-size:14px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+
+  .segment{display:flex;gap:6px;padding:6px;background:var(--surface-2);border-radius:12px;margin:0 16px 14px}
+  .segment button{flex:1;padding:10px 10px;border:none;border-radius:8px;background:transparent;color:var(--dim);font-size:13px;font-weight:600;cursor:pointer;transition:.15s;font-family:var(--sans)}
+  .segment button.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow-1)}
+
+  .fontsize{display:flex;align-items:center;gap:12px;padding:0 16px 16px;} .fontsize input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer}
+  .group.danger-zone{border-color:rgba(255,92,92,.25)} .rowitem.danger .txt .t{color:var(--danger)} .rowitem.danger .ico{background:rgba(255,92,92,.12);color:var(--danger)} .rowitem.danger:hover{background:rgba(255,92,92,.06)}
+
+  .modal-bg{position:absolute;inset:0;z-index:50;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:24px;animation:fadeIn .2s}
+  .modal-bg.open{display:flex} @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal{width:100%;max-width:340px;background:var(--bg-2);border:1px solid var(--line-2);border-radius:var(--radius-lg);padding:22px;box-shadow:var(--shadow-3);animation:modalIn .25s cubic-bezier(.2,.7,.2,1)}
+  @keyframes modalIn{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+  .modal h3{font-size:18px;font-weight:700;margin-bottom:8px} .modal p{font-size:14px;color:var(--dim);line-height:1.5;margin-bottom:18px}
+  .modal .actions{display:flex;gap:10px;flex-direction:column}
+  .toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--surface-3);color:var(--text);padding:12px 20px;border-radius:999px;font-size:13px;font-weight:500;box-shadow:var(--shadow-2);border:1px solid var(--line-2);opacity:0;pointer-events:none;transition:.25s;z-index:100;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:480px){ .app{max-width:100%; height:100dvh;} .form { max-width:100%; padding:0 16px; } }
 </style>
 </head>
 <body>
+<div class="app" id="app">
 
-<!-- ================= МЕНЮ ================= -->
-<div class="screen active" id="menu">
-  <div class="logo">САПЁР</div>
-  <div class="logo-sub">PRO EDITION</div>
-
-  <div class="menu-league-badge" id="menuLeagueBadge">
-    <span id="menuLeagueIcon">🥉</span>
-    <span id="menuLeagueName">Бронза</span>
-    <span style="color:var(--text-dim)">·</span>
-    <span id="menuLeaguePts">0</span>
-    <span style="color:var(--text-dim)">очков</span>
+  <div class="push-sms" id="push-sms">
+    <div class="push-ico">Z</div>
+    <div class="push-body">
+      <div class="push-title">Zuno Code <span>сейчас</span></div>
+      <div class="push-phone" id="push-phone-val">+7 ...</div>
+      <div class="push-text">Код: <span class="push-code" id="push-code-val">0000</span></div>
+    </div>
   </div>
 
-  <button class="menu-btn primary" data-goto="game">
-    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-    Играть
-  </button>
-  <button class="menu-btn" id="mpMenuBtn" data-goto="multiplayer">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-      <circle cx="9" cy="7" r="4"/>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
-    </svg>
-    Мультиплеер
-  </button>
-  <button class="menu-btn" data-goto="leagues">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2z"/>
-    </svg>
-    Лиги
-  </button>
-  <button class="menu-btn" data-goto="stats">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M3 21V9M9 21V3M15 21v-8M21 21V7"/>
-    </svg>
-    Статистика
-  </button>
-</div>
-
-<!-- ================= ИГРА ================= -->
-<div class="screen" id="game">
   <div class="topbar">
-    <button class="back-btn" data-goto="menu">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-    </button>
-    <div class="topbar-title">Одиночная игра</div>
-  </div>
-
-  <header>
-    <div class="stat-pill" id="minesPill">
-      <div class="stat-icon"><img id="mine-icon" alt=""></div>
-      <span class="stat-value" id="mines">10</span>
-    </div>
-    <button id="reset" aria-label="Новая игра">
-      <img id="reset-icon" alt="">
-    </button>
-    <div class="stat-pill right">
-      <div class="stat-icon"><img id="clock-icon" alt=""></div>
-      <span class="stat-value" id="timer">0</span>
-    </div>
-  </header>
-
-  <div id="toolbar">
-    <button class="tool-btn active" data-d="easy">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>
-      <span>ЛЕГКО</span>
-    </button>
-    <button class="tool-btn" data-d="medium">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
-      <span>СРЕДНЕ</span>
-    </button>
-    <button class="tool-btn" data-d="hard">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21 7.5 13.5 2 9h7z"/></svg>
-      <span>ПРОФИ</span>
-    </button>
-    <button class="tool-btn flag-mode" id="flagModeBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4M4 4h12l-2 4 2 4H4"/></svg>
-      <span>FLAG</span>
-    </button>
-    <button class="tool-btn" data-goto="stats">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V9M9 21V3M15 21v-8M21 21V7"/></svg>
-      <span>СТАТИ</span>
+    <span class="dot off" id="dot"></span>
+    <span class="brand">Zuno <span>· demo</span></span>
+    <span class="spacer"></span>
+    <span id="status-label">offline</span>
+    <button class="icon-btn" id="open-settings" aria-label="Настройки" style="margin-left:10px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
   </div>
 
-  <div id="board-wrap">
-    <div id="board"></div>
-  </div>
-</div>
-
-<!-- ================= МУЛЬТИПЛЕЕР ================= -->
-<div class="screen" id="multiplayer">
-  <div class="topbar">
-    <button class="back-btn" data-goto="menu">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-    </button>
-    <div class="topbar-title">Мультиплеер</div>
-  </div>
-
-  <div id="mpLobby">
-    <button class="mp-btn" id="mpCreateBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-      <div class="mp-btn-text">
-        <div class="mp-btn-title">Создать игру</div>
-        <div class="mp-btn-desc">Получите код и отправьте другу</div>
+  <!-- 1. phone -->
+  <section class="screen active" id="s-phone">
+    <div class="form">
+      <div>
+        <div class="kicker">Шаг 01 — вход</div>
+        <h1>Ваш номер <span class="thin">телефона</span></h1>
       </div>
-    </button>
-
-    <button class="mp-btn" id="mpJoinBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
-      <div class="mp-btn-text">
-        <div class="mp-btn-title">Присоединиться</div>
-        <div class="mp-btn-desc">Введите код друга</div>
+      <p class="hint">Введите реальный номер. Мы проверим его по маске страны и отправим СМС.</p>
+      <div class="field">
+        <label class="label" for="phone">Номер</label>
+        <input id="phone" type="tel" placeholder="+7 999 123 45 67" autocomplete="tel" inputmode="tel">
+        <div class="feedback" id="fb-phone"></div>
       </div>
-    </button>
-
-    <div style="margin-top:20px;padding:14px;background:rgba(0,0,0,0.3);border-radius:12px;font-size:12px;color:var(--text-dim);line-height:1.5;">
-      ⚡ Гонка на скорость. У вас и у соперника одинаковое поле с одинаковыми минами. Кто первым откроет все безопасные клетки — победил!
+      <button class="btn" id="go-code">Получить код</button>
+      <div class="foot"><span>zuno</span><span class="sep"></span><span>v1.3</span><span class="sep"></span><span>прайм</span></div>
     </div>
-  </div>
+  </section>
 
-  <div id="mpWaiting" style="display:none;">
-    <div class="mp-status">
-      <div class="spinner"></div>
-      <div class="status-text" id="mpStatusText">Создание комнаты...</div>
-      <div class="mp-code" id="mpCode">----</div>
-      <div class="mp-code-hint">Отправьте этот код другу</div>
+  <!-- 2. code -->
+  <section class="screen" id="s-code">
+    <div class="form">
+      <div>
+        <div class="kicker">Шаг 02 — проверка</div>
+        <h1>Введите <span class="thin">код</span></h1>
+      </div>
+      <p class="hint">Отправили СМС на <b id="phone-view">—</b>. <span id="fake-resend" style="color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:3px">Отправить повторно</span></p>
+      <div class="otp" id="otp">
+        <input type="text" inputmode="numeric" maxlength="1" aria-label="цифра 1">
+        <input type="text" inputmode="numeric" maxlength="1" aria-label="цифра 2">
+        <input type="text" inputmode="numeric" maxlength="1" aria-label="цифра 3">
+        <input type="text" inputmode="numeric" maxlength="1" aria-label="цифра 4">
+      </div>
+      <div class="feedback" id="fb-code"></div>
+      <button class="btn" id="verify">Подтвердить</button>
+      <button class="btn ghost" id="back">Изменить номер</button>
+      <div class="foot" id="code-hint"></div>
     </div>
-    <button class="menu-btn" id="mpCancelBtn" style="max-width:100%;">
-      Отменить
-    </button>
-  </div>
+  </section>
 
-  <div id="mpJoining" style="display:none;">
-    <div class="mp-status">
-      <div class="spinner" style="display:none;" id="mpJoinSpinner"></div>
-      <div class="status-text">Введите код друга</div>
-      <input id="mpCodeInput" maxlength="6" placeholder="КОД">
-      <button class="dialog button" id="mpConnectBtn" style="width:100%;padding:15px;font-size:16px;font-weight:900;color:#06080e;background:linear-gradient(135deg,#22d3ee,#a855f7);border:none;border-radius:16px;cursor:pointer;text-transform:uppercase;">
-        Подключиться
+  <!-- 3. chats list -->
+  <section class="screen" id="s-list">
+    <div class="list-head">
+      <div class="title">Чаты</div>
+    </div>
+    <div class="search">
+      <div class="wrap-search">
+        <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="search-input" type="text" placeholder="Поиск чатов…" autocomplete="off">
+      </div>
+    </div>
+    <div class="chats" id="chats"></div>
+  </section>
+
+  <!-- 4. chat -->
+  <section class="screen" id="s-chat">
+    <div class="chathead">
+      <button class="back" id="chat-back" aria-label="Назад">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div class="ava-wrap">
+        <div class="ava" id="chat-ava">Z</div>
+        <span class="presence" id="chat-presence"></span>
+      </div>
+      <div class="who">
+        <div class="n" id="chat-name">Zuno Bot</div>
+        <div class="s" id="chat-status">в сети</div>
+      </div>
+      <button class="leave" id="logout">Выйти</button>
+    </div>
+    <div class="thread" id="thread"></div>
+    <div class="composer">
+      <button class="attach" id="attach-btn" aria-label="Прикрепить">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+      </button>
+      <div class="wrap">
+        <input id="msg" type="text" placeholder="Сообщение…" autocomplete="off" maxlength="500">
+        <span class="count" id="count">0/500</span>
+      </div>
+      <button class="send" id="send" aria-label="Отправить" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
       </button>
     </div>
-    <button class="menu-btn" id="mpBackBtn" style="max-width:100%;">
-      Назад
-    </button>
-  </div>
+  </section>
 
-  <!-- Игровой экран мультиплеера -->
-  <div id="mpGame" style="display:none;flex:1;flex-direction:column;min-height:0;">
-    <div class="player-bar">
-      <div class="player-card active" id="mpMeCard">
-        <div class="player-name">Вы</div>
-        <div class="player-score" id="mpMeScore">0 / 0</div>
+  <!-- 5. settings -->
+  <section class="screen" id="s-settings">
+    <div class="settings-head">
+      <button class="back" id="settings-back" aria-label="Назад">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <span class="title">Настройки</span>
+    </div>
+    <div class="settings-body">
+
+      <div class="group">
+        <div class="profile-hero">
+          <div class="avatar-lg-wrap">
+            <label class="avatar-lg" id="avatar-lg" for="avatar-input" title="Сменить аватар">
+              <span id="avatar-fallback">U</span>
+              <img id="avatar-img" alt="" style="display:none">
+              <span class="edit">изменить</span>
+            </label>
+            <span class="presence" id="profile-presence"></span>
+          </div>
+          <input type="file" id="avatar-input" accept="image/*" style="display:none">
+          <div class="profile-name" id="profile-name">Пользователь</div>
+          <div class="profile-handle" id="profile-handle">@user</div>
+        </div>
       </div>
-      <div class="player-card" id="mpOppCard">
-        <div class="player-name">Соперник</div>
-        <div class="player-score" id="mpOppScore">0 / 0</div>
+
+      <div class="group">
+        <div class="rowitem" data-edit="name">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <div class="txt"><span class="t">Имя</span><span class="d" id="val-name">Пользователь</span></div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
+        <div class="rowitem" data-edit="handle">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/></svg></div>
+          <div class="txt"><span class="t">Имя пользователя</span><span class="d" id="val-handle">@user</span></div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
+        <div class="rowitem" data-edit="bio">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H5.17L4 17.17V4Z"/></svg></div>
+          <div class="txt"><span class="t">О себе</span><span class="d" id="val-bio">—</span></div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
+        <div class="rowitem" data-edit="phone">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/></svg></div>
+          <div class="txt"><span class="t">Телефон</span><span class="d" id="val-phone">—</span></div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
       </div>
-    </div>
-    <div id="mpBoardWrap" style="flex:1;display:flex;align-items:center;justify-content:center;min-height:0;">
-      <div id="mpBoard"></div>
-    </div>
-  </div>
-</div>
 
-<!-- ================= ЛИГИ ================= -->
-<div class="screen" id="leagues">
-  <div class="topbar">
-    <button class="back-btn" data-goto="menu">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-    </button>
-    <div class="topbar-title">Лиги</div>
-  </div>
-
-  <div class="league-card" id="leagueCurrentCard">
-    <div class="league-header">
-      <div class="league-big-icon" id="leagueBigIcon" style="background:rgba(34,211,238,0.15);color:#cd7f32;">🥉</div>
-      <div class="league-info">
-        <div class="league-name" id="leagueCurrentName">Бронза</div>
-        <div class="league-points" id="leagueCurrentPts">0 очков</div>
+      <div class="group-title">Конфиденциальность</div>
+      <div class="group">
+        <div class="rowitem">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+          <div class="txt"><span class="t">Последний визит</span><span class="d">Показывать «был(а) недавно»</span></div>
+          <div class="switch on" data-toggle="lastSeen"></div>
+        </div>
+        <div class="rowitem">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></div>
+          <div class="txt"><span class="t">Статус «в сети»</span><span class="d">Показывать, когда вы онлайн</span></div>
+          <div class="switch on" data-toggle="online"></div>
+        </div>
+        <div class="rowitem">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <div class="txt"><span class="t">«Печатает…»</span><span class="d">Показывать, когда вы набираете</span></div>
+          <div class="switch on" data-toggle="typing"></div>
+        </div>
+        <div class="rowitem">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <div class="txt"><span class="t">Шифрование</span><span class="d">Сквозное шифрование (демо)</span></div>
+          <div class="switch on" data-toggle="e2e"></div>
+        </div>
+        <div class="rowitem" id="who-can-write">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
+          <div class="txt"><span class="t">Кто может писать</span><span class="d" id="val-who-can-write">Все</span></div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
+        <div class="rowitem" id="blocklist">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
+          <div class="txt"><span class="t">Заблокированные</span><span class="d" id="val-blocked">0 контактов</span></div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
       </div>
+
+      <div class="group-title">Уведомления</div>
+      <div class="group">
+        <div class="rowitem">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+          <div class="txt"><span class="t">Уведомления</span><span class="d">Показывать оповещения</span></div>
+          <div class="switch on" data-toggle="notif"></div>
+        </div>
+        <div class="rowitem">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></div>
+          <div class="txt"><span class="t">Звук</span><span class="d">Звук новых сообщений</span></div>
+          <div class="switch on" data-toggle="sound"></div>
+        </div>
+        <div class="rowitem">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+          <div class="txt"><span class="t">Вибрация</span><span class="d">Короткая вибрация</span></div>
+          <div class="switch on" data-toggle="vibration"></div>
+        </div>
+        <div class="rowitem">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="m2 2 20 20"/></svg></div>
+          <div class="txt"><span class="t">Не беспокоить</span><span class="d">Отключить все оповещения</span></div>
+          <div class="switch" data-toggle="dnd"></div>
+        </div>
+      </div>
+
+      <div class="group-title">Внешний вид</div>
+      <div class="group">
+        <div class="rowitem" style="border-bottom:none;padding-bottom:6px">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></div>
+          <div class="txt"><span class="t">Тема</span><span class="d">Тёмная или светлая</span></div>
+        </div>
+        <div class="segment" id="theme-seg">
+          <button data-theme-val="dark" class="active">Тёмная</button>
+          <button data-theme-val="light">Светлая</button>
+        </div>
+        <div class="rowitem" style="border-bottom:none;padding-bottom:6px">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20Z"/></svg></div>
+          <div class="txt"><span class="t">Акцент</span><span class="d">Цвет интерфейса</span></div>
+        </div>
+        <div class="swatches" id="accent-swatches">
+          <div class="swatch active" data-accent-val="blue" style="background:#5b8cff"></div>
+          <div class="swatch" data-accent-val="violet" style="background:#a06bff"></div>
+          <div class="swatch" data-accent-val="lime" style="background:#8bd000"></div>
+          <div class="swatch" data-accent-val="pink" style="background:#ff5c9d"></div>
+          <div class="swatch" data-accent-val="orange" style="background:#ff8a3d"></div>
+          <div class="swatch" data-accent-val="cyan" style="background:#22c8d8"></div>
+        </div>
+        <div class="rowitem" style="border-bottom:none;padding-bottom:0">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg></div>
+          <div class="txt"><span class="t">Размер текста</span><span class="d" id="val-fontsize">100%</span></div>
+        </div>
+        <div class="fontsize">
+          <input type="range" id="fontrange" min="85" max="125" step="5" value="100">
+        </div>
+      </div>
+
+      <div class="group-title">Данные</div>
+      <div class="group">
+        <div class="rowitem" id="export-data">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+          <div class="txt"><span class="t">Экспорт данных</span><span class="d">Скачать переписку и настройки</span></div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
+        <div class="rowitem" id="clear-chat">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="m19 6-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></div>
+          <div class="txt"><span class="t">Очистить переписку</span><span class="d">Удалить все сообщения</span></div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
+        <div class="rowitem" id="reset-settings">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></div>
+          <div class="txt"><span class="t">Сбросить настройки</span><span class="d">Вернуть значения по умолчанию</span></div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
+      </div>
+
+      <div class="group-title">Опасная зона</div>
+      <div class="group danger-zone">
+        <div class="rowitem danger" id="delete-account">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+          <div class="txt"><span class="t">Удалить аккаунт</span><span class="d">Безвозвратно удалить все данные</span></div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
+      </div>
+
+      <div class="foot" style="justify-content:center;margin-top:16px"><span>zuno</span><span class="sep"></span><span>v1.3</span><span class="sep"></span><span>сборка 2025</span></div>
     </div>
-    <div class="progress-bar">
-      <div class="progress-fill" id="leagueProgress" style="width:0%"></div>
+  </section>
+
+  <div class="modal-bg" id="modal-bg">
+    <div class="modal" id="modal">
+      <h3 id="modal-title">Заголовок</h3>
+      <p id="modal-text">Текст</p>
+      <div class="field" id="modal-field" style="display:none;margin-bottom:16px">
+        <input id="modal-input" type="text" placeholder="">
+        <div class="feedback" id="modal-fb"></div>
+      </div>
+      <div class="actions" id="modal-actions"></div>
     </div>
-    <div class="progress-text">
-      <span id="leagueProgressFrom">0</span>
-      <span id="leagueProgressTo">100</span>
-    </div>
   </div>
 
-  <div class="league-list" id="leagueList"></div>
+  <div class="toast" id="toast"></div>
 </div>
-
-<!-- ================= СТАТИСТИКА ================= -->
-<div class="screen" id="stats">
-  <div class="topbar">
-    <button class="back-btn" data-goto="menu">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-    </button>
-    <div class="topbar-title">Статистика</div>
-  </div>
-
-  <div class="stats-list">
-    <div class="stat-row"><span class="label">Текущая лига</span><span class="value" id="statLeague">Бронза</span></div>
-    <div class="stat-row"><span class="label">Очки лиги</span><span class="value" id="statLeaguePts">0</span></div>
-    <div class="stat-row"><span class="label">Сыграно партий</span><span class="value" id="statPlayed">0</span></div>
-    <div class="stat-row"><span class="label">Побед</span><span class="value" id="statWins">0</span></div>
-    <div class="stat-row"><span class="label">Процент побед</span><span class="value" id="statRate">0%</span></div>
-    <div class="stat-row"><span class="label">Серия побед</span><span class="value" id="statStreak">0</span></div>
-    <div class="stat-row"><span class="label">Побед в мультиплеере</span><span class="value" id="statMpWins">0</span></div>
-    <div class="stat-row"><span class="label">Рекорд · Легко</span><span class="value" id="statBestEasy">—</span></div>
-    <div class="stat-row"><span class="label">Рекорд · Средне</span><span class="value" id="statBestMedium">—</span></div>
-    <div class="stat-row"><span class="label">Рекорд · Профи</span><span class="value" id="statBestHard">—</span></div>
-  </div>
-</div>
-
-<!-- ================= OVERLAY РЕЗУЛЬТАТА ================= -->
-<div class="overlay" id="overlay">
-  <div class="dialog">
-    <img id="result-icon" style="width:80px;height:80px;margin-bottom:8px;" alt="">
-    <h2 id="result-title">Победа!</h2>
-    <p id="result-subtitle">Ваше время</p>
-    <div class="big-time" id="result-time">0 с</div>
-    <div class="best" id="result-best">🏆 Рекорд: —</div>
-    <div class="best" id="result-league" style="display:none;color:#22d3ee;background:rgba(34,211,238,0.1);border-color:rgba(34,211,238,0.3);">+0 очков лиги</div>
-    <button id="againBtn">Играть снова</button>
-    <button class="secondary" id="closeResultBtn">В меню</button>
-  </div>
-</div>
-
-<!-- ================= OVERLAY ВВОДА КОДА ================= -->
-<div class="overlay" id="codeOverlay">
-  <div class="dialog">
-    <h2 style="margin-bottom:12px;">Введите код</h2>
-    <input id="codeInput" maxlength="6" placeholder="КОД" autocomplete="off">
-    <button id="codeConnectBtn">Подключиться</button>
-    <button class="secondary" id="codeCancelBtn">Отмена</button>
-  </div>
-</div>
-
-<div id="toast"></div>
 
 <script>
-(function () {
-  // ============================================================
-  // ИКОНКИ
-  // ============================================================
-  const ICONS = {
-    mine: 'data:image/svg+xml;utf8,' + encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="16" fill="#111"/><rect x="30" y="4" width="4" height="12" fill="#111"/><rect x="30" y="48" width="4" height="12" fill="#111"/><rect x="4" y="30" width="12" height="4" fill="#111"/><rect x="48" y="30" width="12" height="4" fill="#111"/><rect x="10" y="10" width="10" height="4" fill="#111" transform="rotate(45 15 12)"/><rect x="44" y="10" width="10" height="4" fill="#111" transform="rotate(-45 49 12)"/><rect x="10" y="50" width="10" height="4" fill="#111" transform="rotate(-45 15 52)"/><rect x="44" y="50" width="10" height="4" fill="#111" transform="rotate(45 49 52)"/><circle cx="26" cy="26" r="3" fill="#fff" opacity="0.8"/></svg>'
-    ),
-    flag: 'data:image/svg+xml;utf8,' + encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="14" y="8" width="4" height="48" rx="2" fill="#1a1a1a"/><path d="M18 10 L50 18 L18 26 Z" fill="#1a1a1a"/><rect x="8" y="54" width="20" height="4" rx="2" fill="#1a1a1a"/></svg>'
-    ),
-    clock: 'data:image/svg+xml;utf8,' + encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="24" fill="none" stroke="#22d3ee" stroke-width="4"/><rect x="30" y="16" width="4" height="18" rx="2" fill="#22d3ee"/><rect x="30" y="30" width="14" height="4" rx="2" fill="#22d3ee"/></svg>'
-    ),
-    mineHead: 'data:image/svg+xml;utf8,' + encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="16" fill="#22d3ee"/><rect x="30" y="4" width="4" height="12" fill="#22d3ee"/><rect x="30" y="48" width="4" height="12" fill="#22d3ee"/><rect x="4" y="30" width="12" height="4" fill="#22d3ee"/><rect x="48" y="30" width="12" height="4" fill="#22d3ee"/><circle cx="26" cy="26" r="3" fill="#06080e"/></svg>'
-    ),
-    smile: 'data:image/svg+xml;utf8,' + encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="#fff"/><circle cx="23" cy="26" r="4" fill="#06080e"/><circle cx="41" cy="26" r="4" fill="#06080e"/><path d="M18 38 Q32 52 46 38" fill="none" stroke="#06080e" stroke-width="4" stroke-linecap="round"/></svg>'
-    ),
-    sad: 'data:image/svg+xml;utf8,' + encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="#fff"/><circle cx="23" cy="26" r="4" fill="#f43f5e"/><circle cx="41" cy="26" r="4" fill="#f43f5e"/><path d="M18 46 Q32 34 46 46" fill="none" stroke="#f43f5e" stroke-width="4" stroke-linecap="round"/></svg>'
-    ),
-    cool: 'data:image/svg+xml;utf8,' + encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="#fff"/><rect x="12" y="22" width="40" height="10" rx="4" fill="#06080e"/><rect x="16" y="24" width="14" height="6" rx="2" fill="#22d3ee"/><rect x="34" y="24" width="14" height="6" rx="2" fill="#22d3ee"/><path d="M18 42 Q32 52 46 42" fill="none" stroke="#06080e" stroke-width="4" stroke-linecap="round"/></svg>'
-    )
+(() => {
+  "use strict";
+
+  const $ = id => document.getElementById(id);
+  const LS = {
+    key:"zuno.prime.v3",
+    load(){try{return JSON.parse(localStorage.getItem(this.key))||{}}catch{return{}}},
+    save(o){try{localStorage.setItem(this.key,JSON.stringify(o))}catch{}},
+    clear(){try{localStorage.removeItem(this.key)}catch{}}
   };
 
-  // ============================================================
-  // СЛОЖНОСТИ
-  // ============================================================
-  const DIFF = {
-    easy:   { cols: 9,  rows: 9,  mines: 10, label: 'Легко' },
-    medium: { cols: 16, rows: 16, mines: 40, label: 'Средне' },
-    hard:   { cols: 16, rows: 30, mines: 99, label: 'Профи' }
-  };
-
-  // ============================================================
-  // ЛИГИ
-  // ============================================================
-  const LEAGUES = [
-    { id: 'bronze',   name: 'Бронза',   icon: '🥉', min: 0,    max: 100,  color: '#cd7f32' },
-    { id: 'silver',   name: 'Серебро',  icon: '🥈', min: 100,  max: 300,  color: '#c0c0c0' },
-    { id: 'gold',     name: 'Золото',   icon: '🥇', min: 300,  max: 600,  color: '#ffd700' },
-    { id: 'platinum', name: 'Платина',  icon: '💎', min: 600,  max: 1000, color: '#5ce1e6' },
-    { id: 'diamond',  name: 'Алмаз',    icon: '💠', min: 1000, max: 1500, color: '#60a5fa' },
-    { id: 'master',   name: 'Мастер',   icon: '🏆', min: 1500, max: 2200, color: '#a855f7' },
-    { id: 'legend',   name: 'Легенда',  icon: '👑', min: 2200, max: 99999, color: '#f472b6' }
+  const CHATS = [
+    { id:"bot",   name:"Zuno Bot",     handle:"@zuno_bot",   avatar:"Z", online:true,  color:"var(--accent)" },
+    { id:"alice", name:"Алиса",        handle:"@alice",      avatar:"А", online:true,  color:"#ff5c9d" },
+    { id:"max",   name:"Макс",         handle:"@max",        avatar:"М", online:false, color:"#22c8d8" },
+    { id:"team",  name:"Команда",      handle:"@team",       avatar:"К", online:true,  color:"#8bd000" }
   ];
 
-  function getLeagueByPoints(pts) {
-    for (let i = LEAGUES.length - 1; i >= 0; i--) {
-      if (pts >= LEAGUES[i].min) return LEAGUES[i];
+  const defaults = {
+    phone:null, code:null,
+    chats:{},
+    profile:{ name:"Пользователь", handle:"@user", bio:"", avatar:null },
+    prefs:{
+      lastSeen:true, online:true, typing:true, e2e:true,
+      notif:true, sound:true, vibration:true, dnd:false,
+      whoCanWrite:"Все", blocked:[],
+      theme:"dark", accent:"blue", fontScale:100
     }
-    return LEAGUES[0];
+  };
+
+  let state = structuredClone(defaults);
+  const saved = LS.load();
+  if (saved && typeof saved === "object") {
+    state = Object.assign(structuredClone(defaults), saved);
+    state.profile = Object.assign(structuredClone(defaults.profile), saved.profile||{});
+    state.prefs   = Object.assign(structuredClone(defaults.prefs),   saved.prefs||{});
+    state.chats   = Object.assign({}, saved.chats||{});
+  }
+  const persist = () => LS.save(state);
+
+  const digits = v => (v||"").replace(/\D/g,"");
+  const nowTime = () => new Date().toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});
+  const esc = s => s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const chatMeta = id => CHATS.find(c=>c.id===id) || CHATS[0];
+  const ensureChat = id => {
+    if(!state.chats[id]) state.chats[id] = { messages:[], unread:0, lastTs:null };
+    return state.chats[id];
+  };
+  const lastMessage = id => {
+    const c = state.chats[id];
+    return c && c.messages.length ? c.messages[c.messages.length-1] : null;
+  };
+
+  const show = id => {
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    $(id).classList.add("active");
+  };
+  const setStatus = online => {
+    $("status-label").textContent = online ? "online" : "offline";
+    $("dot").classList.toggle("off", !online);
+  };
+
+  // ЖЁСТКАЯ ВАЛИДАЦИЯ НОМЕРА (локальные маски)
+  function validatePhone(phoneStr) {
+    const d = digits(phoneStr);
+    // Все шестёрки или одинаковые символы — отказ
+    if (/^(\d)\1+$/.test(d)) return false;
+    
+    // Маски для основных стран (код страны: [min_len, max_len])
+    const countries = {
+      "7": [11, 11],  // Россия/Казахстан
+      "1": [10, 10],  // США/Канада
+      "44": [10, 10], // Великобритания
+      "49": [10, 11], // Германия
+      "33": [9, 9],   // Франция
+      "380": [11, 11],// Украина
+      "375": [11, 11],// Беларусь
+      "998": [9, 9],  // Узбекистан
+      "77": [11, 11], // Казахстан (иногда)
+    };
+
+    let matched = false;
+    for (const [code, len] of Object.entries(countries)) {
+      if (d.startsWith(code)) {
+        if (d.length >= len[0] && d.length <= len[1]) {
+          matched = true;
+          break;
+        }
+      }
+    }
+    
+    if (!matched) return false;
+
+    // Проверка на реальные префиксы операторов РФ (9xx)
+    if (d.startsWith("7")) {
+      const operatorCode = d.substring(1, 4); // 999, 900 и т.д.
+      if (["900","901","902","903","904","905","906","908","909","910","911","912","913","914","915","916","917","918","919","920","921","922","923","924","925","926","927","928","929","930","931","932","933","934","936","937","938","939","950","951","952","953","954","955","956","958","960","961","962","963","964","965","966","967","968","969","980","981","982","983","984","985","986","987","988","989","999"].indexOf(operatorCode) === -1) {
+        return false; // Неизвестный оператор
+      }
+    }
+
+    return true;
   }
 
-  // ============================================================
-  // ЭЛЕМЕНТЫ
-  // ============================================================
-  const $ = function (id) { return document.getElementById(id); };
-  const screens = document.querySelectorAll('.screen');
-  const toastEl = $('toast');
-
-  // ============================================================
-  // НАВИГАЦИЯ
-  // ============================================================
-  function goto(screenId) {
-    screens.forEach(function (s) { s.classList.remove('active'); });
-    const el = document.getElementById(screenId);
-    if (el) el.classList.add('active');
-    if (screenId === 'menu') updateMenuBadge();
-    if (screenId === 'leagues') renderLeagues();
-    if (screenId === 'stats') renderStats();
+  function applyTheme(){
+    document.documentElement.setAttribute("data-theme", state.prefs.theme);
+    document.documentElement.setAttribute("data-accent", state.prefs.accent);
+    document.documentElement.style.setProperty("--font-scale", state.prefs.fontScale/100);
+    document.querySelectorAll("#theme-seg button").forEach(b=>{
+      b.classList.toggle("active", b.dataset.themeVal === state.prefs.theme);
+    });
+    document.querySelectorAll("#accent-swatches .swatch").forEach(s=>{
+      s.classList.toggle("active", s.dataset.accentVal === state.prefs.accent);
+    });
+    $("fontrange").value = state.prefs.fontScale;
+    $("val-fontsize").textContent = state.prefs.fontScale + "%";
   }
-  document.querySelectorAll('[data-goto]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      const target = btn.dataset.goto;
-      if (target === 'multiplayer' && !navigator.onLine) {
-        toast('📴 Для мультиплеера нужен интернет');
+
+  let toastTimer=null;
+  function toast(msg){
+    const t=$("toast"); t.textContent=msg; t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(()=>t.classList.remove("show"),2000);
+  }
+
+  const modal = {
+    open(opts){
+      $("modal-title").textContent = opts.title || "";
+      $("modal-text").textContent = opts.text || "";
+      $("modal-text").style.display = opts.text ? "block" : "none";
+      $("modal-fb").textContent = "";
+      $("modal-fb").className = "feedback";
+      const field = $("modal-field");
+      if (opts.input !== undefined){
+        field.style.display = "flex";
+        $("modal-input").value = opts.input.value ?? "";
+        $("modal-input").type = opts.input.type || "text";
+        $("modal-input").placeholder = opts.input.placeholder || "";
+        setTimeout(()=>$("modal-input").focus(),50);
+      } else field.style.display = "none";
+
+      const actions=$("modal-actions"); actions.innerHTML="";
+      (opts.actions||[]).forEach(a=>{
+        const b=document.createElement("button");
+        b.className="btn " + (a.style||"");
+        b.textContent=a.label;
+        b.onclick=()=>a.onClick && a.onClick(closeModal);
+        actions.appendChild(b);
+      });
+      $("modal-bg").classList.add("open");
+    }
+  };
+  function closeModal(){ $("modal-bg").classList.remove("open"); }
+  $("modal-bg").addEventListener("click", e => { if (e.target.id === "modal-bg") closeModal(); });
+
+  // --- НАСТОЯЩИЙ PUSH С ВИБРАЦИЕЙ И ЗВУКОМ ---
+  async function sendRealPush(phone, code) {
+    // Визуальная плашка
+    $("push-phone-val").textContent = phone;
+    $("push-code-val").textContent = code;
+    $("push-sms").classList.add("show");
+    setTimeout(() => $("push-sms").classList.remove("show"), 8000);
+
+    // Вибрация (работает на телефонах)
+    if ("vibrate" in navigator) {
+      navigator.vibrate([200, 100, 200, 100, 200]);
+    }
+
+    // Звук (используем AudioContext для простого бипа)
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+      gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.5);
+    } catch (e) {}
+
+    // Системное уведомление
+    if (!("Notification" in window)) return;
+    try {
+      let permission = Notification.permission;
+      if (permission === "default") permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        new Notification("Zuno Code", {
+          body: `СМС на номер ${phone}\nКод: ${code}`,
+          vibrate: [200, 100, 200]
+        });
+      }
+    } catch (e) {}
+  }
+
+  // --- Вход ---
+  $("phone").addEventListener("input", e => {
+    let d = digits(e.target.value).slice(0,15);
+    if (!d){ e.target.value=""; return; }
+    if (d[0]==="7" && d.length>1){
+      const p=d.slice(1); let out="+7";
+      if(p.length)  out+=" "+p.slice(0,3);
+      if(p.length>3)out+=" "+p.slice(3,6);
+      if(p.length>6)out+=" "+p.slice(6,8);
+      if(p.length>8)out+=" "+p.slice(8,10);
+      e.target.value=out;
+    } else e.target.value="+"+d;
+    e.target.classList.remove("error");
+    $("fb-phone").textContent="";
+  });
+
+  $("go-code").addEventListener("click", () => {
+    const raw=$("phone").value, fb=$("fb-phone");
+    
+    if (!validatePhone(raw)) {
+      $("phone").classList.add("error");
+      fb.textContent="Неверный номер (проверьте код оператора и длину)";
+      fb.className="feedback err";
+      $("phone").focus();
+      return;
+    }
+
+    let d = digits(raw);
+    if (d.startsWith("7")) d = "+" + d;
+    else d = "+" + d;
+    
+    state.phone = d;
+    state.code = String(Math.floor(1000+Math.random()*9000));
+    persist();
+    
+    $("phone-view").textContent = state.phone;
+    $("code-hint").innerHTML='<span>demo</span><span class="sep"></span><span>код: '+state.code+'</span>';
+    $("fb-code").textContent="";
+    $("fb-code").className="feedback";
+    document.querySelectorAll("#otp input").forEach(i=>{i.value="";i.classList.remove("error","filled")});
+    
+    sendRealPush(state.phone, state.code);
+    
+    show("s-code");
+    setTimeout(()=>document.querySelector("#otp input").focus(),80);
+  });
+
+  $("phone").addEventListener("keydown",e=>{if(e.key==="Enter")$("go-code").click()});
+
+  const otpInputs=[...document.querySelectorAll("#otp input")];
+  otpInputs.forEach((inp,i)=>{
+    inp.addEventListener("input",()=>{
+      inp.value=inp.value.replace(/\D/g,"").slice(0,1);
+      inp.classList.toggle("filled",!!inp.value);
+      if(inp.value&&i<otpInputs.length-1)otpInputs[i+1].focus();
+      if(otpInputs.every(x=>x.value))$("verify").focus();
+    });
+    inp.addEventListener("keydown",e=>{
+      if(e.key==="Backspace"&&!inp.value&&i>0){otpInputs[i-1].focus();otpInputs[i-1].value="";otpInputs[i-1].classList.remove("filled")}
+      if(e.key==="ArrowLeft"&&i>0)otpInputs[i-1].focus();
+      if(e.key==="ArrowRight"&&i<otpInputs.length-1)otpInputs[i+1].focus();
+      if(e.key==="Enter")$("verify").click();
+    });
+    inp.addEventListener("paste",e=>{
+      e.preventDefault();
+      const t=digits((e.clipboardData||window.clipboardData).getData("text")).slice(0,4);
+      [...t].forEach((ch,j)=>{if(otpInputs[j]){otpInputs[j].value=ch;otpInputs[j].classList.add("filled")}});
+      (otpInputs[Math.min(t.length,3)]||otpInputs[3]).focus();
+    });
+  });
+
+  $("verify").addEventListener("click",()=>{
+    const entered=otpInputs.map(i=>i.value).join("");
+    const fb=$("fb-code");
+    
+    if(entered.length!==4){ 
+      fb.textContent="Введите все 4 цифры"; 
+      fb.className="feedback err"; 
+      return; 
+    }
+    
+    if(entered!==state.code){
+      otpInputs.forEach(i=>i.classList.add("error"));
+      fb.textContent="Неверный код. Проверьте, на тот ли номер он пришёл."; 
+      fb.className="feedback err"; 
+      return;
+    }
+    
+    otpInputs.forEach(i=>i.classList.remove("error"));
+    fb.textContent="Готово, входим…"; fb.className="feedback ok";
+    $("verify").disabled=true;
+    setTimeout(()=>{ $("verify").disabled=false; enterApp(); },420);
+  });
+
+  $("back").addEventListener("click",()=>{ 
+    state.code = null; 
+    persist();
+    show("s-phone"); 
+    setStatus(false); 
+    $("phone").focus(); 
+  });
+
+  $("fake-resend").addEventListener("click",()=>{
+    state.code=String(Math.floor(1000+Math.random()*9000)); persist();
+    $("code-hint").innerHTML='<span>demo</span><span class="sep"></span><span>новый код: '+state.code+'</span>';
+    $("fb-code").textContent="Код обновлён"; $("fb-code").className="feedback ok";
+    sendRealPush(state.phone, state.code);
+  });
+
+  // --- Приложение ---
+  function enterApp(){
+    setStatus(true);
+    show("s-list");
+    renderChats();
+    refreshProfileUI();
+  }
+
+  // --- Список чатов ---
+  function renderChats(){
+    const container = $("chats");
+    const q = ($("search-input").value || "").trim().toLowerCase();
+    container.innerHTML = "";
+
+    const items = CHATS
+      .map(c => ({ c, last: lastMessage(c.id), chat: state.chats[c.id] }))
+      .filter(({c}) => !q || c.name.toLowerCase().includes(q) || c.handle.toLowerCase().includes(q));
+
+    if (!items.length){
+      container.innerHTML = '<div class="empty"><div class="big">💬</div><p>Пока нет чатов. Начните с Zuno Bot.</p></div>';
+      return;
+    }
+
+    items.sort((a,b)=>{
+      const ua = (a.chat && a.chat.unread) ? 1 : 0;
+      const ub = (b.chat && b.chat.unread) ? 1 : 0;
+      if (ua !== ub) return ub - ua;
+      const ta = a.last ? a.last.ts : "";
+      const tb = b.last ? b.last.ts : "";
+      return tb.localeCompare(ta);
+    });
+
+    items.forEach(({c, last, chat}) => {
+      const el = document.createElement("div");
+      el.className = "chat-item";
+      el.dataset.id = c.id;
+      el.onclick = () => openChat(c.id);
+
+      const preview = last
+        ? (last.who==="me" ? "Вы: " : "") + (last.isImg ? "Изображение" : esc(last.text))
+        : (chat && chat.messages.length ? "" : "Нет сообщений");
+      const time = last ? last.ts : "";
+      const unread = chat && chat.unread ? chat.unread : 0;
+
+      el.innerHTML = `
+        <div class="ava-wrap">
+          <div class="ava" style="background:radial-gradient(circle at 30% 25%, rgba(255,255,255,.35), transparent 50%),linear-gradient(135deg, ${c.color}, #a06bff)">${esc(c.avatar)}</div>
+          <span class="presence ${c.online ? "" : "off"}"></span>
+        </div>
+        <div class="body">
+          <div class="row1">
+            <div class="name">${esc(c.name)}</div>
+            <div class="time">${time}</div>
+          </div>
+          <div class="row2">
+            <div class="preview">${preview}</div>
+            ${unread ? `<div class="badge">${unread}</div>` : ""}
+          </div>
+        </div>
+      `;
+      container.appendChild(el);
+    });
+  }
+
+  $("search-input").addEventListener("input", renderChats);
+
+  // --- Чат ---
+  let currentChatId = null;
+
+  function openChat(id){
+    currentChatId = id;
+    const meta = chatMeta(id);
+    const chat = ensureChat(id);
+
+    if (chat.unread) chat.unread = 0;
+    persist();
+
+    $("chat-name").textContent = meta.name;
+    $("chat-status").textContent = meta.online ? "в сети" : "был(а) недавно";
+    $("chat-ava").innerHTML = esc(meta.avatar);
+    $("chat-presence").classList.toggle("off", !meta.online || !state.prefs.online);
+
+    if (!chat.messages.length && id === "bot"){
+      pushToChat(id, "them", "Привет. Это Zuno — демо-канал.");
+      pushToChat(id, "sys",  "соединение установлено");
+      setTimeout(()=>pushToChat(id, "them", "Напиши что-нибудь — проверю, как работает."),700);
+    }
+
+    renderThread();
+    show("s-chat");
+    setTimeout(()=>$("msg").focus(),100);
+  }
+
+  $("chat-back").addEventListener("click",()=>{
+    currentChatId = null;
+    show("s-list");
+    renderChats();
+  });
+
+  function renderThread(){
+    const t = $("thread");
+    t.innerHTML = "";
+    if (!currentChatId) return;
+    const chat = ensureChat(currentChatId);
+    chat.messages.forEach(m=>appendBubble(m, currentChatId));
+    t.scrollTop = t.scrollHeight;
+  }
+
+  function appendBubble(m, chatId){
+    const t = $("thread");
+    if (m.who === "sys"){
+      const el = document.createElement("div");
+      el.className = "sys"; el.textContent = m.text; t.appendChild(el);
+    } else {
+      const row = document.createElement("div");
+      row.className = "row " + (m.who === "me" ? "me" : "them");
+      const b = document.createElement("div");
+      b.className = "bubble";
+      if (m.isImg) {
+        b.innerHTML = `<img src="${m.text}" style="max-width:100%;border-radius:10px;display:block;margin-bottom:4px"><span class="t">${m.ts}</span>`;
+      } else {
+        b.innerHTML = esc(m.text) + '<span class="t">' + m.ts + "</span>";
+      }
+      row.appendChild(b); t.appendChild(row);
+    }
+    t.scrollTop = t.scrollHeight;
+  }
+
+  function pushToChat(chatId, who, text, isImg=false){
+    const chat = ensureChat(chatId);
+    const m = { who, text, isImg, ts: nowTime() };
+    chat.messages.push(m);
+    chat.lastTs = m.ts;
+    if (who !== "me" && chatId !== currentChatId) chat.unread = (chat.unread||0) + 1;
+    persist();
+    if (chatId === currentChatId) appendBubble(m, chatId);
+    if ($("s-list").classList.contains("active")) renderChats();
+    return m;
+  }
+
+  let typingEl = null;
+  function showTyping(){
+    if (typingEl) return;
+    typingEl = document.createElement("div");
+    typingEl.className = "typing";
+    typingEl.innerHTML = "<i></i><i></i><i></i>";
+    $("thread").appendChild(typingEl);
+    $("thread").scrollTop = $("thread").scrollHeight;
+  }
+  function hideTyping(){ if (typingEl){ typingEl.remove(); typingEl = null; } }
+
+  const replies = ["Принял 👍","Ага, понятно","Звучит логично","Давай проверим ещё раз","Zuno на связи ⚡","Интересно, расскажи подробнее","Ок, записал"];
+  function botRespond(chatId){
+    if (state.prefs.dnd) return;
+    showTyping();
+    setTimeout(()=>{
+      hideTyping();
+      pushToChat(chatId, "them", replies[Math.floor(Math.random()*replies.length)]);
+    }, 600 + Math.random()*900);
+  }
+
+  function sendMsg(){
+    if (!currentChatId) return;
+    const inp = $("msg");
+    const text = inp.value.trim();
+    if (!text) return;
+    pushToChat(currentChatId, "me", text);
+    inp.value = ""; updateCount();
+    if (currentChatId === "bot") botRespond(currentChatId);
+  }
+
+  $("send").addEventListener("click", sendMsg);
+  $("msg").addEventListener("keydown", e => { if (e.key === "Enter") sendMsg(); });
+
+  // Отправка картинки
+  $("attach-btn").addEventListener("click", () => {
+    if (!currentChatId) return;
+    const input = document.createElement("input");
+    input.type = "file"; input.accept = "image/*";
+    input.onchange = e => {
+      const file = e.target.files[0]; if(!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        pushToChat(currentChatId, "me", ev.target.result, true);
+        if (currentChatId === "bot") setTimeout(()=>pushToChat(currentChatId, "them", "Классная картинка! 📸"), 1000);
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  });
+
+  function updateCount(){
+    const n = $("msg").value.length;
+    const c = $("count");
+    c.textContent = n + "/500";
+    c.classList.toggle("warn", n > 450);
+    $("send").disabled = n === 0;
+  }
+  $("msg").addEventListener("input", updateCount);
+
+  $("logout").addEventListener("click", ()=>{
+    state.phone = null; state.code = null; state.chats = {};
+    persist();
+    currentChatId = null;
+    setStatus(false);
+    show("s-phone");
+    $("phone").value = ""; $("fb-phone").textContent = "";
+    $("phone").focus();
+  });
+
+  // --- Настройки ---
+  $("open-settings").addEventListener("click", ()=>{
+    show("s-settings"); renderSettings();
+  });
+  $("settings-back").addEventListener("click", ()=>{
+    if (state.phone && state.chats && Object.keys(state.chats).length) show("s-list");
+    else if (state.phone) show("s-list");
+    else show("s-phone");
+    renderChats();
+  });
+
+  function refreshProfileUI(){
+    const p = state.profile;
+    const initial = (p.name||"U").trim().charAt(0).toUpperCase() || "U";
+    $("profile-name").textContent = p.name || "Пользователь";
+    $("profile-handle").textContent = p.handle || "@user";
+    $("val-name").textContent = p.name || "—";
+    $("val-handle").textContent = p.handle || "—";
+    $("val-bio").textContent = p.bio || "—";
+    $("val-phone").textContent = state.phone || "—";
+
+    if (p.avatar){
+      $("avatar-img").src = p.avatar; $("avatar-img").style.display = "block";
+      $("avatar-fallback").style.display = "none";
+    } else {
+      $("avatar-img").style.display = "none";
+      $("avatar-fallback").style.display = "inline";
+      $("avatar-fallback").textContent = initial;
+    }
+    const pp = $("profile-presence");
+    if (pp) pp.classList.toggle("off", !state.prefs.online);
+  }
+
+  function renderSettings(){
+    document.querySelectorAll(".switch[data-toggle]").forEach(sw=>{
+      const k = sw.dataset.toggle;
+      sw.classList.toggle("on", !!state.prefs[k]);
+    });
+    $("val-who-can-write").textContent = state.prefs.whoCanWrite || "Все";
+    $("val-blocked").textContent = (state.prefs.blocked.length||0) + " контактов";
+    applyTheme();
+    refreshProfileUI();
+  }
+
+  document.querySelectorAll(".switch[data-toggle]").forEach(sw=>{
+    sw.addEventListener("click", ()=>{
+      const k = sw.dataset.toggle;
+      state.prefs[k] = !state.prefs[k];
+      sw.classList.toggle("on", state.prefs[k]);
+      persist();
+      if (k === "online"){
+        $("profile-presence").classList.toggle("off", !state.prefs.online);
+        $("chat-presence").classList.toggle("off", !state.prefs.online);
+      }
+      toast((state.prefs[k]?"Вкл: ":"Выкл: ") + labelFor(k));
+    });
+  });
+  function labelFor(k){
+    return ({lastSeen:"последний визит",online:"статус онлайн",typing:"«печатает…»",e2e:"шифрование",notif:"уведомления",sound:"звук",vibration:"вибрация",dnd:"не беспокоить"})[k] || k;
+  }
+
+  document.querySelectorAll("[data-edit]").forEach(row=>{
+    row.addEventListener("click", ()=>{
+      const key = row.dataset.edit;
+      if (key === "phone"){
+        modal.open({
+          title:"Сменить номер",
+          text:"Введите новый номер телефона.",
+          input:{value:state.phone||"", placeholder:"+7 999 123 45 67", type:"tel"},
+          actions:[
+            {label:"Отмена", style:"ghost", onClick:closeModal},
+            {label:"Сохранить", onClick:(close)=>{
+              const v = $("modal-input").value.trim();
+              if(!validatePhone(v)){ $("modal-fb").textContent="Некорректный номер"; $("modal-fb").className="feedback err"; return; }
+              state.phone = "+" + digits(v); persist(); refreshProfileUI(); close(); toast("Номер обновлён");
+            }}
+          ]
+        });
         return;
       }
-      goto(target);
-    });
-  });
-
-  // ============================================================
-  // TOAST
-  // ============================================================
-  let toastTimer = null;
-  function toast(msg) {
-    toastEl.textContent = msg;
-    toastEl.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 2200);
-  }
-
-  // ============================================================
-  // ХРАНИЛИЩЕ
-  // ============================================================
-  function getStat(key, def) {
-    const v = localStorage.getItem('saper_' + key);
-    return v === null ? def : (isNaN(v) ? v : parseInt(v, 10));
-  }
-  function setStat(key, val) { localStorage.setItem('saper_' + key, String(val)); }
-  function incStat(key, by) { setStat(key, (getStat(key, 0) || 0) + (by || 1)); }
-
-  function getLeaguePoints() { return getStat('leaguePoints', 0); }
-  function setLeaguePoints(v) { setStat('leaguePoints', Math.max(0, v)); }
-
-  // ============================================================
-  // ВИБРАЦИЯ
-  // ============================================================
-  function vibrate(p) { if (navigator.vibrate) navigator.vibrate(p); }
-
-  // ============================================================
-  // ПРОВЕРКА ИНТЕРНЕТА
-  // ============================================================
-  function updateOnlineState() {
-    const online = navigator.onLine;
-    const mpBtn = $('mpMenuBtn');
-    if (!mpBtn) return;
-    mpBtn.classList.toggle('locked', !online);
-  }
-  window.addEventListener('online',  function () {
-    updateOnlineState();
-    toast('🌐 Интернет подключён');
-  });
-  window.addEventListener('offline', function () {
-    updateOnlineState();
-    toast('📴 Нет интернета — мультиплеер недоступен');
-  });
-  updateOnlineState();
-
-  // ============================================================
-  // МЕНЮ: БЕЙДЖ ЛИГИ
-  // ============================================================
-  function updateMenuBadge() {
-    const pts = getLeaguePoints();
-    const league = getLeagueByPoints(pts);
-    $('menuLeagueIcon').textContent = league.icon;
-    $('menuLeagueName').textContent = league.name;
-    $('menuLeaguePts').textContent = pts;
-  }
-
-  // ============================================================
-  // ОДИНОЧНАЯ ИГРА
-  // ============================================================
-  let cols = 9, rows = 9, totalMines = 10;
-  let currentDiff = 'easy';
-  let cells = [];
-  let minesPlaced = false;
-  let gameOver = false;
-  let flags = 0;
-  let opened = 0;
-  let timer = null;
-  let seconds = 0;
-  let started = false;
-  let flagMode = false;
-  let boardEl = $('board');
-  let minesEl = $('mines');
-  let minesPill = $('minesPill');
-  let timerEl = $('timer');
-  let resetBtn = $('reset');
-  let resetIcon = $('reset-icon');
-
-  $('mine-icon').src = ICONS.mineHead;
-  $('clock-icon').src = ICONS.clock;
-  resetIcon.src = ICONS.smile;
-
-  function layoutBoard() {
-    const headerH = document.querySelector('#game header').offsetHeight;
-    const toolbarH = document.querySelector('#game #toolbar').offsetHeight;
-    const topbarH = document.querySelector('#game .topbar').offsetHeight;
-    const padding = 24;
-    const gap = 16;
-    const boardPad = 12;
-    const availW = window.innerWidth - padding - boardPad;
-    const availH = window.innerHeight - headerH - toolbarH - topbarH - padding - gap - boardPad;
-    const cell = Math.floor(Math.min(availW / cols, availH / rows)) - 3;
-    const size = Math.max(14, cell);
-    boardEl.style.gridTemplateColumns = 'repeat(' + cols + ', ' + size + 'px)';
-    boardEl.style.gridTemplateRows    = 'repeat(' + rows + ', ' + size + 'px)';
-    boardEl.querySelectorAll('.cell').forEach(function (c) {
-      c.style.fontSize = Math.floor(size * 0.55) + 'px';
-    });
-  }
-
-  function initGame() {
-    clearInterval(timer);
-    seconds = 0;
-    timerEl.textContent = '0';
-    started = false;
-    minesPlaced = false;
-    gameOver = false;
-    flags = 0;
-    opened = 0;
-    minesEl.textContent = totalMines;
-    minesPill.classList.remove('warn');
-    resetIcon.src = ICONS.smile;
-    $('overlay').classList.remove('show');
-
-    const d = DIFF[currentDiff];
-    cols = d.cols; rows = d.rows; totalMines = d.mines;
-
-    boardEl.innerHTML = '';
-    cells = [];
-    for (let i = 0; i < cols * rows; i++) {
-      const div = document.createElement('div');
-      div.className = 'cell';
-      div.dataset.i = i;
-      div.addEventListener('click', onCellClick);
-      div.addEventListener('contextmenu', onCellRight);
-      div.addEventListener('touchstart', onCellTouchStart, { passive: false });
-      div.addEventListener('touchend', onCellTouchEnd);
-      boardEl.appendChild(div);
-      cells.push({ el: div, mine: false, num: 0, open: false, flag: false });
-    }
-    layoutBoard();
-  }
-
-  function neighbors(i, c, r) {
-    const x = i % c, y = Math.floor(i / c);
-    const res = [];
-    for (let dy = -1; dy <= 1; dy++) {
-      for (let dx = -1; dx <= 1; dx++) {
-        if (!dx && !dy) continue;
-        const nx = x + dx, ny = y + dy;
-        if (nx >= 0 && nx < c && ny >= 0 && ny < r) res.push(ny * c + nx);
-      }
-    }
-    return res;
-  }
-
-  function placeMines(firstIdx) {
-    const safe = new Set([firstIdx].concat(neighbors(firstIdx, cols, rows)));
-    const cand = [];
-    for (let i = 0; i < cols * rows; i++) if (!safe.has(i)) cand.push(i);
-    for (let i = cand.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const t = cand[i]; cand[i] = cand[j]; cand[j] = t;
-    }
-    const count = Math.min(totalMines, cand.length);
-    for (let k = 0; k < count; k++) cells[cand[k]].mine = true;
-    cells.forEach(function (c, i) {
-      if (c.mine) return;
-      c.num = neighbors(i, cols, rows).filter(function (n) { return cells[n].mine; }).length;
-    });
-    minesPlaced = true;
-  }
-
-  function startTimer() {
-    timer = setInterval(function () {
-      seconds++;
-      timerEl.textContent = seconds;
-    }, 1000);
-  }
-
-  function openCell(i) {
-    const c = cells[i];
-    if (c.open || c.flag || gameOver) return;
-    c.open = true;
-    c.el.classList.add('open');
-    c.el.textContent = '';
-    opened++;
-    if (c.mine) { lose(i); return; }
-    if (c.num > 0) {
-      c.el.textContent = c.num;
-      c.el.dataset.n = c.num;
-    } else {
-      neighbors(i, cols, rows).forEach(openCell);
-    }
-    if (opened === cols * rows - totalMines) win();
-  }
-
-  function chord(i) {
-    const c = cells[i];
-    if (!c.open || c.num === 0) return;
-    const nb = neighbors(i, cols, rows);
-    const fl = nb.filter(function (n) { return cells[n].flag; }).length;
-    if (fl === c.num) {
-      nb.forEach(function (n) {
-        if (!cells[n].flag && !cells[n].open) openCell(n);
-      });
-    }
-  }
-
-  function toggleFlag(i) {
-    if (gameOver) return;
-    const c = cells[i];
-    if (c.open) return;
-    c.flag = !c.flag;
-    c.el.classList.toggle('flag', c.flag);
-    if (c.flag) {
-      const img = document.createElement('img');
-      img.src = ICONS.flag;
-      c.el.innerHTML = '';
-      c.el.appendChild(img);
-    } else {
-      c.el.innerHTML = '';
-    }
-    flags += c.flag ? 1 : -1;
-    minesEl.textContent = totalMines - flags;
-    minesPill.classList.toggle('warn', totalMines - flags < 0);
-    vibrate(20);
-  }
-
-  function onCellClick(e) {
-    if (gameOver) return;
-    const i = +e.currentTarget.dataset.i;
-    if (!minesPlaced) {
-      placeMines(i);
-      started = true;
-      startTimer();
-      if (flagMode) toggleFlag(i); else openCell(i);
-      vibrate(15);
-      return;
-    }
-    if (cells[i].open) { chord(i); vibrate(10); return; }
-    if (flagMode) { toggleFlag(i); return; }
-    openCell(i);
-    vibrate(15);
-  }
-
-  function onCellRight(e) {
-    e.preventDefault();
-    if (gameOver || !minesPlaced) return;
-    toggleFlag(+e.currentTarget.dataset.i);
-  }
-
-  let touchTimer = null;
-  let longPressed = false;
-  function onCellTouchStart(e) {
-    longPressed = false;
-    touchTimer = setTimeout(function () {
-      longPressed = true;
-      const i = +e.currentTarget.dataset.i;
-      if (minesPlaced && !gameOver) toggleFlag(i);
-      vibrate(25);
-    }, 400);
-  }
-  function onCellTouchEnd(e) {
-    clearTimeout(touchTimer);
-    if (longPressed) { e.preventDefault(); longPressed = false; }
-  }
-
-  function lose(mineIdx) {
-    gameOver = true;
-    clearInterval(timer);
-    vibrate([80, 40, 80, 40, 200]);
-    incStat('played');
-    // Сброс серии
-    setStat('streak', 0);
-    cells.forEach(function (c) {
-      if (c.mine && !c.flag) {
-        c.el.classList.add('open', 'mine');
-        const img = document.createElement('img');
-        img.src = ICONS.mine;
-        c.el.innerHTML = '';
-        c.el.appendChild(img);
-      } else if (!c.mine && c.flag) {
-        c.el.innerHTML = '';
-        c.el.textContent = '✕';
-        c.el.style.color = '#f43f5e';
-      }
-    });
-    cells[mineIdx].el.classList.add('boom');
-    resetIcon.src = ICONS.sad;
-    resetBtn.classList.add('pulse');
-    setTimeout(function () { resetBtn.classList.remove('pulse'); }, 600);
-    setTimeout(function () { showGameResult(false); }, 800);
-  }
-
-  function win() {
-    gameOver = true;
-    clearInterval(timer);
-    vibrate([30, 30, 30, 30, 100]);
-    incStat('played');
-    incStat('wins');
-    incStat('streak');
-    cells.forEach(function (c) {
-      if (c.mine) {
-        c.el.classList.add('flag');
-        const img = document.createElement('img');
-        img.src = ICONS.flag;
-        c.el.innerHTML = '';
-        c.el.appendChild(img);
-      }
-    });
-    resetIcon.src = ICONS.cool;
-    minesEl.textContent = '0';
-    resetBtn.classList.add('pulse');
-    setTimeout(function () { resetBtn.classList.remove('pulse'); }, 600);
-
-    // Начисление очков лиги
-    const basePoints = currentDiff === 'easy' ? 10 : currentDiff === 'medium' ? 25 : 50;
-    const speedBonus = Math.max(0, Math.floor((basePoints * 2) - seconds));
-    const totalAdd = basePoints + Math.min(speedBonus, basePoints);
-    setLeaguePoints(getLeaguePoints() + totalAdd);
-    updateMenuBadge();
-
-    spawnConfetti();
-
-    setTimeout(function () { showGameResult(true, totalAdd); }, 600);
-  }
-
-  function spawnConfetti() {
-    const colors = ['#22d3ee', '#a855f7', '#f472b6', '#10b981', '#fbbf24'];
-    for (let i = 0; i < 50; i++) {
-      const c = document.createElement('div');
-      c.className = 'confetti';
-      c.style.left = Math.random() * 100 + 'vw';
-      c.style.top = '-20px';
-      c.style.background = colors[Math.floor(Math.random() * colors.length)];
-      c.style.animationDelay = Math.random() * 0.5 + 's';
-      c.style.animationDuration = (1.5 + Math.random() * 1) + 's';
-      document.body.appendChild(c);
-      setTimeout(function () { c.remove(); }, 3000);
-    }
-  }
-
-  function showGameResult(isWin, leagueAdd) {
-    const diff = DIFF[currentDiff];
-    $('result-icon').src = isWin ? ICONS.cool : ICONS.sad;
-    const title = $('result-title');
-    title.textContent = isWin ? 'Победа!' : 'Взрыв!';
-    title.className = isWin ? 'win' : 'lose';
-    $('result-subtitle').textContent = 'Ваше время';
-    $('result-time').textContent = seconds + ' с';
-
-    const key = 'saper_best_' + currentDiff;
-    let best = parseInt(localStorage.getItem(key) || '0', 10);
-    if (isWin && (best === 0 || seconds < best)) {
-      best = seconds;
-      localStorage.setItem(key, String(best));
-      toast('🏆 Новый рекорд: ' + best + ' с');
-    }
-    $('result-best').textContent = '🏆 Рекорд (' + diff.label + '): ' + (best || '—') + ' с';
-
-    const leagueEl = $('result-league');
-    if (isWin && leagueAdd) {
-      leagueEl.style.display = 'inline-block';
-      leagueEl.textContent = '+' + leagueAdd + ' очков лиги';
-    } else {
-      leagueEl.style.display = 'none';
-    }
-    $('overlay').classList.add('show');
-  }
-
-  resetBtn.addEventListener('click', function () { vibrate(10); initGame(); });
-  $('againBtn').addEventListener('click', function () { vibrate(10); initGame(); });
-  $('closeResultBtn').addEventListener('click', function () {
-    $('overlay').classList.remove('show');
-    goto('menu');
-  });
-  $('flagModeBtn').addEventListener('click', function () {
-    flagMode = !flagMode;
-    this.classList.toggle('active', flagMode);
-    toast(flagMode ? '🚩 Режим флагов' : '👆 Обычный режим');
-    vibrate(15);
-  });
-  document.querySelectorAll('#game [data-d]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      document.querySelectorAll('#game [data-d]').forEach(function (b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      currentDiff = btn.dataset.d;
-      vibrate(10);
-      initGame();
-    });
-  });
-
-  // ============================================================
-  // ЛИГИ
-  // ============================================================
-  function renderLeagues() {
-    const pts = getLeaguePoints();
-    const cur = getLeagueByPoints(pts);
-    const next = LEAGUES[LEAGUES.indexOf(cur) + 1];
-
-    $('leagueBigIcon').textContent = cur.icon;
-    $('leagueBigIcon').style.color = cur.color;
-    $('leagueBigIcon').style.background = cur.color + '26';
-    $('leagueCurrentName').textContent = cur.name;
-    $('leagueCurrentPts').textContent = pts + ' очков';
-
-    if (next) {
-      const range = next.min - cur.min;
-      const progress = pts - cur.min;
-      const pct = Math.max(0, Math.min(100, Math.round(progress / range * 100)));
-      $('leagueProgress').style.width = pct + '%';
-      $('leagueProgressFrom').textContent = pts;
-      $('leagueProgressTo').textContent = next.min;
-    } else {
-      $('leagueProgress').style.width = '100%';
-      $('leagueProgressFrom').textContent = 'Максимум';
-      $('leagueProgressTo').textContent = pts;
-    }
-
-    const list = $('leagueList');
-    list.innerHTML = '';
-    LEAGUES.forEach(function (l) {
-      const isCurrent = l.id === cur.id;
-      const locked = pts < l.min;
-      const item = document.createElement('div');
-      item.className = 'league-item' + (isCurrent ? ' current' : '') + (locked ? ' locked' : '');
-      item.innerHTML =
-        '<div class="league-item-icon" style="background:' + l.color + '26;color:' + l.color + ';">' + l.icon + '</div>' +
-        '<div class="league-item-name">' + l.name + '</div>' +
-        '<div class="league-item-pts">' + (locked ? '🔒 ' + l.min : l.min + '+') + '</div>';
-      list.appendChild(item);
-    });
-  }
-
-  // ============================================================
-  // СТАТИСТИКА
-  // ============================================================
-  function renderStats() {
-    const pts = getLeaguePoints();
-    const cur = getLeagueByPoints(pts);
-    $('statLeague').textContent = cur.icon + ' ' + cur.name;
-    $('statLeaguePts').textContent = pts;
-    const played = getStat('played', 0) || 0;
-    const wins = getStat('wins', 0) || 0;
-    $('statPlayed').textContent = played;
-    $('statWins').textContent = wins;
-    $('statRate').textContent = played ? Math.round(wins / played * 100) + '%' : '0%';
-    $('statStreak').textContent = getStat('streak', 0) || 0;
-    $('statMpWins').textContent = getStat('mpWins', 0) || 0;
-    ['easy', 'medium', 'hard'].forEach(function (d) {
-      const v = parseInt(localStorage.getItem('saper_best_' + d) || '0', 10);
-      const el = $('statBest' + d.charAt(0).toUpperCase() + d.slice(1));
-      if (el) el.textContent = v ? v + ' с' : '—';
-    });
-  }
-
-  // ============================================================
-  // МУЛЬТИПЛЕЕР (PeerJS)
-  // ============================================================
-  let peer = null;
-  let conn = null;
-  let mpMode = null; // 'host' | 'guest'
-  let mpSeed = null;
-  let mpCells = [];
-  let mpCols = 9, mpRows = 9, mpMines = 10;
-  let mpOpened = 0;
-  let mpTotal = 0;
-  let mpFlags = 0;
-  let mpGameOver = false;
-  let mpStarted = false;
-  let mpMyScore = 0;
-  let mpOppScore = 0;
-  let mpBoardEl = $('mpBoard');
-
-  function genCode() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let s = '';
-    for (let i = 0; i < 5; i++) s += chars[Math.floor(Math.random() * chars.length)];
-    return s;
-  }
-
-  function resetMpUI() {
-    $('mpLobby').style.display = 'block';
-    $('mpWaiting').style.display = 'none';
-    $('mpJoining').style.display = 'none';
-    $('mpGame').style.display = 'none';
-    if (conn) { try { conn.close(); } catch (e) {} conn = null; }
-    if (peer) { try { peer.destroy(); } catch (e) {} peer = null; }
-    mpGameOver = false;
-    mpStarted = false;
-  }
-
-  $('mpCancelBtn').addEventListener('click', function () {
-    resetMpUI();
-  });
-  $('mpBackBtn').addEventListener('click', function () {
-    resetMpUI();
-  });
-
-  $('mpCreateBtn').addEventListener('click', function () {
-    if (!navigator.onLine) { toast('📴 Нет интернета'); return; }
-    if (typeof Peer === 'undefined') { toast('⚠️ PeerJS не загружен'); return; }
-    $('mpLobby').style.display = 'none';
-    $('mpWaiting').style.display = 'block';
-    $('mpStatusText').textContent = 'Создание комнаты...';
-    $('mpCode').textContent = '----';
-
-    mpMode = 'host';
-    const code = genCode();
-    mpSeed = code;
-
-    try {
-      peer = new Peer('saper-' + code, { debug: 0 });
-    } catch (e) {
-      toast('⚠️ Ошибка подключения');
-      resetMpUI();
-      return;
-    }
-
-    peer.on('open', function () {
-      $('mpStatusText').textContent = 'Комната создана! Ожидание соперника...';
-      $('mpCode').textContent = code;
-    });
-
-    peer.on('connection', function (c) {
-      conn = c;
-      conn.on('open', function () {
-        // Отправляем параметры игры
-        conn.send({
-          type: 'init',
-          seed: mpSeed,
-          diff: 'easy'
-        });
-        startMpGame('host');
-      });
-      conn.on('data', onMpData);
-      conn.on('close', function () {
-        if (!mpGameOver) {
-          toast('❌ Соперник отключился');
-          mpGameOver = true;
-          showMpResult(true, 'Соперник отключился');
-        }
+      const labels = { name:"Имя", handle:"Имя пользователя", bio:"О себе" };
+      const current = state.profile[key] || "";
+      modal.open({
+        title: labels[key],
+        text: key === "handle" ? "Начните с @, только латиница, цифры и _." : "",
+        input:{ value: current, placeholder: labels[key], type:"text" },
+        actions:[
+          {label:"Отмена", style:"ghost", onClick:closeModal},
+          {label:"Сохранить", onClick:(close)=>{
+            let v = $("modal-input").value.trim();
+            if (key === "handle"){
+              v = v ? (v.startsWith("@")?v:"@"+v) : "@user";
+              if(!/^@[a-zA-Z0-9_]{2,20}$/.test(v)){ $("modal-fb").textContent="Формат: @username"; $("modal-fb").className="feedback err"; return; }
+            }
+            if (key === "name" && !v){ $("modal-fb").textContent="Имя не может быть пустым"; $("modal-fb").className="feedback err"; return; }
+            state.profile[key] = v; persist(); refreshProfileUI(); close(); toast("Сохранено");
+          }}
+        ]
       });
     });
+  });
 
-    peer.on('error', function (err) {
-      console.error(err);
-      if (err.type === 'unavailable-id') {
-        toast('⚠️ Код занят, попробуйте снова');
-      } else {
-        toast('⚠️ Ошибка: ' + err.type);
-      }
-      resetMpUI();
+  $("avatar-input").addEventListener("change", e => {
+    const file = e.target.files[0]; if(!file) return;
+    if (file.size > 2*1024*1024){ toast("Файл больше 2 МБ"); return; }
+    const reader = new FileReader();
+    reader.onload = ()=>{ state.profile.avatar = reader.result; persist(); refreshProfileUI(); toast("Аватар обновлён"); };
+    reader.readAsDataURL(file);
+  });
+
+  $("who-can-write").addEventListener("click", ()=>{
+    const opts = ["Все","Мои контакты","Никто"];
+    modal.open({
+      title:"Кто может писать",
+      text:"Ограничьте, кто может начинать с вами диалог.",
+      actions: opts.map(o=>({
+        label:(state.prefs.whoCanWrite===o?"✓ ":"")+o,
+        style: state.prefs.whoCanWrite===o ? "" : "ghost",
+        onClick:(close)=>{ state.prefs.whoCanWrite=o; persist(); $("val-who-can-write").textContent=o; close(); toast("Сохранено"); }
+      }))
     });
   });
 
-  $('mpJoinBtn').addEventListener('click', function () {
-    if (!navigator.onLine) { toast('📴 Нет интернета'); return; }
-    if (typeof Peer === 'undefined') { toast('⚠️ PeerJS не загружен'); return; }
-    $('mpLobby').style.display = 'none';
-    $('mpJoining').style.display = 'block';
-    $('mpCodeInput').value = '';
-    $('mpCodeInput').focus();
-  });
-
-  $('mpConnectBtn').addEventListener('click', function () {
-    const code = $('mpCodeInput').value.trim().toUpperCase();
-    if (!code || code.length < 4) { toast('⚠️ Введите код'); return; }
-
-    mpMode = 'guest';
-    $('mpJoinSpinner').style.display = 'block';
-    $('mpConnectBtn').disabled = true;
-    $('mpConnectBtn').textContent = 'Подключение...';
-
-    try {
-      peer = new Peer({ debug: 0 });
-    } catch (e) {
-      toast('⚠️ Ошибка подключения');
-      resetMpUI();
-      return;
-    }
-
-    peer.on('open', function () {
-      conn = peer.connect('saper-' + code, { reliable: true });
-      conn.on('open', function () {
-        $('mpJoinSpinner').style.display = 'none';
-        $('mpConnectBtn').disabled = false;
-        $('mpConnectBtn').textContent = 'Подключиться';
-      });
-      conn.on('data', onMpData);
-      conn.on('close', function () {
-        if (!mpGameOver) {
-          toast('❌ Соперник отключился');
-          mpGameOver = true;
-          showMpResult(true, 'Соперник отключился');
-        }
-      });
-    });
-
-    peer.on('error', function (err) {
-      console.error(err);
-      toast('⚠️ Не удалось подключиться: ' + err.type);
-      $('mpJoinSpinner').style.display = 'none';
-      $('mpConnectBtn').disabled = false;
-      $('mpConnectBtn').textContent = 'Подключиться';
+  $("blocklist").addEventListener("click", ()=>{
+    modal.open({
+      title:"Заблокированные",
+      text: state.prefs.blocked.length ? "Список: "+state.prefs.blocked.join(", ") : "Список пуст.",
+      input:{value:"", placeholder:"@username или номер", type:"text"},
+      actions:[
+        {label:"Закрыть", style:"ghost", onClick:closeModal},
+        {label:"Заблокировать", onClick:(close)=>{
+          const v = $("modal-input").value.trim(); if(!v) return;
+          state.prefs.blocked.push(v); persist();
+          $("val-blocked").textContent = state.prefs.blocked.length + " контактов";
+          close(); toast("Заблокирован: "+v);
+        }}
+      ]
     });
   });
 
-  $('mpCodeInput').addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') $('mpConnectBtn').click();
+  document.querySelectorAll("#theme-seg button").forEach(b=>{
+    b.addEventListener("click",()=>{ state.prefs.theme = b.dataset.themeVal; persist(); applyTheme(); });
+  });
+  document.querySelectorAll("#accent-swatches .swatch").forEach(s=>{
+    s.addEventListener("click",()=>{ state.prefs.accent = s.dataset.accentVal; persist(); applyTheme(); });
+  });
+  $("fontrange").addEventListener("input", e=>{
+    state.prefs.fontScale = +e.target.value; persist(); applyTheme();
   });
 
-  function onMpData(data) {
-    if (data.type === 'init') {
-      // Гость получает параметры от хоста
-      mpSeed = data.seed;
-      startMpGame('guest');
-    } else if (data.type === 'progress') {
-      mpOppScore = data.opened;
-      $('mpOppScore').textContent = mpOppScore + ' / ' + mpTotal;
-    } else if (data.type === 'win') {
-      if (!mpGameOver) {
-        mpGameOver = true;
-        showMpResult(false, 'Соперник победил');
-      }
-    } else if (data.type === 'lose') {
-      if (!mpGameOver) {
-        mpGameOver = true;
-        showMpResult(true, 'Соперник взорвался');
-      }
-    }
-  }
+  $("export-data").addEventListener("click", ()=>{
+    const blob = new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "zuno-export-"+Date.now()+".json"; a.click();
+    URL.revokeObjectURL(url); toast("Данные экспортированы");
+  });
 
-  // Детерминированный генератор по seed
-  function seededRandom(seed) {
-    let h = 2166136261;
-    for (let i = 0; i < seed.length; i++) {
-      h ^= seed.charCodeAt(i);
-      h = Math.imul(h, 16777619);
-    }
-    return function () {
-      h ^= h << 13; h ^= h >>> 17; h ^= h << 5;
-      return ((h >>> 0) / 4294967296);
-    };
-  }
-
-  function startMpGame(role) {
-    $('mpWaiting').style.display = 'none';
-    $('mpJoining').style.display = 'none';
-    $('mpGame').style.display = 'flex';
-
-    mpCols = 9; mpRows = 9; mpMines = 10;
-    mpTotal = mpCols * mpRows - mpMines;
-    mpOpened = 0;
-    mpFlags = 0;
-    mpMyScore = 0;
-    mpOppScore = 0;
-    mpGameOver = false;
-    mpStarted = false;
-
-    $('mpMeScore').textContent = '0 / ' + mpTotal;
-    $('mpOppScore').textContent = '0 / ' + mpTotal;
-    $('mpMeCard').className = 'player-card active';
-    $('mpOppCard').className = 'player-card';
-
-    // Генерация поля по seed
-    const rng = seededRandom(mpSeed);
-    mpCells = [];
-    mpBoardEl.innerHTML = '';
-    for (let i = 0; i < mpCols * mpRows; i++) {
-      const div = document.createElement('div');
-      div.className = 'cell';
-      div.dataset.i = i;
-      div.addEventListener('click', onMpCellClick);
-      div.addEventListener('contextmenu', onMpCellRight);
-      div.addEventListener('touchstart', onMpTouchStart, { passive: false });
-      div.addEventListener('touchend', onMpTouchEnd);
-      mpBoardEl.appendChild(div);
-      mpCells.push({ el: div, mine: false, num: 0, open: false, flag: false });
-    }
-
-    // Расстановка мин (безопасная зона вокруг центра)
-    const center = Math.floor(mpRows / 2) * mpCols + Math.floor(mpCols / 2);
-    const safe = new Set([center].concat(neighbors(center, mpCols, mpRows)));
-    const cand = [];
-    for (let i = 0; i < mpCols * mpRows; i++) if (!safe.has(i)) cand.push(i);
-    for (let i = cand.length - 1; i > 0; i--) {
-      const j = Math.floor(rng() * (i + 1));
-      const t = cand[i]; cand[i] = cand[j]; cand[j] = t;
-    }
-    for (let k = 0; k < mpMines; k++) mpCells[cand[k]].mine = true;
-    mpCells.forEach(function (c, i) {
-      if (c.mine) return;
-      c.num = neighbors(i, mpCols, mpRows).filter(function (n) { return mpCells[n].mine; }).length;
+  $("clear-chat").addEventListener("click", ()=>{
+    modal.open({
+      title:"Очистить переписку?",
+      text:"Все сообщения будут удалены без возможности восстановления.",
+      actions:[
+        {label:"Отмена", style:"ghost", onClick:closeModal},
+        {label:"Очистить", style:"danger", onClick:(close)=>{
+          state.chats = {}; persist(); renderChats();
+          if (currentChatId){ currentChatId = null; }
+          close(); toast("Переписка очищена");
+        }}
+      ]
     });
+  });
 
-    layoutMpBoard();
-  }
-
-  function layoutMpBoard() {
-    const wrap = $('mpBoardWrap');
-    const availW = wrap.clientWidth;
-    const availH = wrap.clientHeight;
-    const cell = Math.floor(Math.min(availW / mpCols, availH / mpRows)) - 3;
-    const size = Math.max(14, cell);
-    mpBoardEl.style.gridTemplateColumns = 'repeat(' + mpCols + ', ' + size + 'px)';
-    mpBoardEl.style.gridTemplateRows    = 'repeat(' + mpRows + ', ' + size + 'px)';
-    mpBoardEl.querySelectorAll('.cell').forEach(function (c) {
-      c.style.fontSize = Math.floor(size * 0.55) + 'px';
+  $("reset-settings").addEventListener("click", ()=>{
+    modal.open({
+      title:"Сбросить настройки?",
+      text:"Профиль и переписка сохранятся. Сбросятся только предпочтения.",
+      actions:[
+        {label:"Отмена", style:"ghost", onClick:closeModal},
+        {label:"Сбросить", style:"danger", onClick:(close)=>{
+          state.prefs = structuredClone(defaults.prefs); persist(); renderSettings(); close(); toast("Настройки сброшены");
+        }}
+      ]
     });
-  }
+  });
 
-  function openMpCell(i) {
-    const c = mpCells[i];
-    if (c.open || c.flag || mpGameOver) return;
-    c.open = true;
-    c.el.classList.add('open');
-    c.el.textContent = '';
-    mpOpened++;
-    mpMyScore = mpOpened;
-    $('mpMeScore').textContent = mpMyScore + ' / ' + mpTotal;
+  $("delete-account").addEventListener("click", ()=>{
+    modal.open({
+      title:"Удалить аккаунт?",
+      text:"Это удалит профиль, переписку и настройки безвозвратно.",
+      actions:[
+        {label:"Отмена", style:"ghost", onClick:closeModal},
+        {label:"Удалить", style:"danger", onClick:(close)=>{
+          LS.clear(); state = structuredClone(defaults); persist();
+          close(); setStatus(false); show("s-phone");
+          $("phone").value = ""; $("fb-phone").textContent = ""; toast("Аккаунт удалён");
+        }}
+      ]
+    });
+  });
 
-    if (conn && conn.open) conn.send({ type: 'progress', opened: mpOpened });
-
-    if (c.mine) {
-      mpGameOver = true;
-      c.el.classList.add('mine');
-      const img = document.createElement('img');
-      img.src = ICONS.mine;
-      c.el.innerHTML = '';
-      c.el.appendChild(img);
-      if (conn && conn.open) conn.send({ type: 'lose' });
-      showMpResult(false, 'Вы взорвались');
-      return;
-    }
-
-    if (c.num > 0) {
-      c.el.textContent = c.num;
-      c.el.dataset.n = c.num;
+  (function boot(){
+    applyTheme();
+    setStatus(false);
+    if (state.phone) $("phone").value = state.phone;
+    if (state.phone && state.chats && Object.keys(state.chats).length){
+      enterApp();
+    } else if (state.phone){
+      enterApp();
     } else {
-      neighbors(i, mpCols, mpRows).forEach(openMpCell);
+      $("phone").focus();
     }
-
-    if (mpOpened === mpTotal) {
-      mpGameOver = true;
-      if (conn && conn.open) conn.send({ type: 'win' });
-      incStat('mpWins');
-      incStat('wins');
-      incStat('played');
-      setLeaguePoints(getLeaguePoints() + 20);
-      updateMenuBadge();
-      showMpResult(true, 'Вы победили!');
-    }
-  }
-
-  function onMpCellClick(e) {
-    if (mpGameOver) return;
-    const i = +e.currentTarget.dataset.i;
-    openMpCell(i);
-  }
-  function onMpCellRight(e) {
-    e.preventDefault();
-    if (mpGameOver) return;
-    const i = +e.currentTarget.dataset.i;
-    const c = mpCells[i];
-    if (c.open) return;
-    c.flag = !c.flag;
-    c.el.classList.toggle('flag', c.flag);
-    if (c.flag) {
-      const img = document.createElement('img');
-      img.src = ICONS.flag;
-      c.el.innerHTML = '';
-      c.el.appendChild(img);
-    } else {
-      c.el.innerHTML = '';
-    }
-  }
-  let mpTouchTimer = null;
-  let mpLongPressed = false;
-  function onMpTouchStart(e) {
-    mpLongPressed = false;
-    mpTouchTimer = setTimeout(function () {
-      mpLongPressed = true;
-      onMpCellRight(e);
-    }, 400);
-  }
-  function onMpTouchEnd(e) {
-    clearTimeout(mpTouchTimer);
-    if (mpLongPressed) { e.preventDefault(); mpLongPressed = false; }
-  }
-
-  function showMpResult(isWin, message) {
-    $('result-icon').src = isWin ? ICONS.cool : ICONS.sad;
-    const title = $('result-title');
-    title.textContent = isWin ? 'Победа!' : 'Поражение';
-    title.className = isWin ? 'win' : 'lose';
-    $('result-subtitle').textContent = message;
-    $('result-time').textContent = '';
-    $('result-best').textContent = '';
-    $('result-league').style.display = 'none';
-    if (isWin) spawnConfetti();
-    $('overlay').classList.add('show');
-
-    if (isWin) {
-      $('mpMeCard').className = 'player-card winner';
-      $('mpOppCard').className = 'player-card loser';
-    } else {
-      $('mpMeCard').className = 'player-card loser';
-      $('mpOppCard').className = 'player-card winner';
-    }
-  }
-
-  // Кнопки результата в мультиплеере — переопределяем поведение
-  const originalAgain = $('againBtn');
-  originalAgain.addEventListener('click', function () {
-    $('overlay').classList.remove('show');
-    if (mpMode) {
-      // В мультиплеере — выход в лобби
-      resetMpUI();
-    } else {
-      initGame();
-    }
-  }, true);
-
-  $('closeResultBtn').addEventListener('click', function () {
-    $('overlay').classList.remove('show');
-    if (mpMode) { resetMpUI(); }
-    goto('menu');
-  });
-
-  // ============================================================
-  // РЕСАЙЗ
-  // ============================================================
-  window.addEventListener('resize', function () {
-    layoutBoard();
-    if (mpCells.length) layoutMpBoard();
-  });
-  window.addEventListener('orientationchange', function () {
-    setTimeout(function () {
-      layoutBoard();
-      if (mpCells.length) layoutMpBoard();
-    }, 200);
-  });
-
-  // Пауза
-  document.addEventListener('visibilitychange', function () {
-    if (document.hidden && timer) { clearInterval(timer); timer = null; }
-    else if (!document.hidden && started && !gameOver && !timer) startTimer();
-  });
-
-  // ============================================================
-  // СТАРТ
-  // ============================================================
-  updateMenuBadge();
-  initGame();
+    updateCount();
+    refreshProfileUI();
+  })();
 })();
 </script>
 </body>
